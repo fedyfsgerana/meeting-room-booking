@@ -1,0 +1,7 @@
+{
+  "files.eol": "\n",
+  "files.insertFinalNewline": true,
+  "files.trimTrailingWhitespace": true,
+  "editor.tabSize": 2,
+  "js/ts.tsdk.path": "node_modules/typescript/lib"
+}

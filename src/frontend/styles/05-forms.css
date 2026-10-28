@@ -1,0 +1,453 @@
+.field {
+  margin-bottom: 14px;
+}
+
+.field>label,
+.field>.label {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--ink);
+}
+
+.field .req {
+  color: var(--bad-ink);
+}
+
+.field .hint {
+  margin-top: 6px;
+  font-size: 12px;
+  color: var(--pewter);
+}
+
+.field .err {
+  margin-top: 6px;
+  font-size: 12px;
+  color: var(--bad-ink);
+}
+
+.grid2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0 16px;
+}
+
+.input,
+.select,
+.textarea {
+  width: 100%;
+  min-height: 34px;
+  padding: 6px 10px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--silver);
+  background: var(--surface);
+  color: var(--ink);
+  font-size: 14px;
+  transition: border-color 0.18s, box-shadow 0.18s;
+}
+
+.textarea {
+  min-height: 88px;
+  resize: vertical;
+}
+
+select.select {
+  appearance: none;
+  -webkit-appearance: none;
+  padding-right: 30px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%238E9095' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  background-size: 14px;
+}
+
+select.select[multiple]:not(.tomselected) {
+  height: 34px;
+  overflow: hidden;
+  color: transparent;
+  pointer-events: none;
+}
+
+select.select[multiple]:not(.tomselected) option,
+select.select[multiple]:not(.tomselected) option:checked {
+  color: transparent;
+  background: transparent linear-gradient(transparent, transparent);
+}
+
+select.select:not(.tomselected) {
+  transition: none;
+}
+
+.input::placeholder,
+.textarea::placeholder {
+  color: var(--fog);
+}
+
+.input:focus,
+.select:focus,
+.textarea:focus {
+  outline: none;
+  border-color: var(--blue);
+  box-shadow: 0 0 0 3px var(--info-soft);
+}
+
+.input:disabled,
+.select:disabled,
+.textarea:disabled {
+  background: var(--sunken);
+  color: var(--pewter);
+}
+
+.invalid .input,
+.invalid .select,
+.invalid .textarea {
+  border-color: var(--bad-ink);
+}
+
+.input-ic {
+  position: relative;
+}
+
+.input-ic>svg {
+  position: absolute;
+  left: 11px;
+  top: 50%;
+  width: 16px;
+  height: 16px;
+  transform: translateY(-50%);
+  color: var(--fog);
+  pointer-events: none;
+}
+
+.input-ic .input {
+  min-height: 36px;
+  padding-left: 36px;
+}
+
+.check {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--graphite);
+  cursor: pointer;
+}
+
+input[type="checkbox"] {
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  flex: none;
+  margin: 0;
+  border: 1.5px solid var(--silver);
+  border-radius: 5px;
+  background: var(--surface) center / 12px no-repeat;
+  cursor: pointer;
+  transition: background-color 0.18s, border-color 0.18s, box-shadow 0.18s;
+}
+
+input[type="checkbox"]:hover:not(:disabled) {
+  border-color: var(--pewter);
+}
+
+input[type="checkbox"]:checked {
+  border-color: var(--blue);
+  background-color: var(--blue);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 6 9 17l-5-5'/%3E%3C/svg%3E");
+}
+
+input[type="checkbox"]:checked:hover:not(:disabled) {
+  border-color: var(--blue-hover);
+  background-color: var(--blue-hover);
+}
+
+input[type="checkbox"]:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+@media (max-width: 767px) {
+  .grid2 {
+    grid-template-columns: 1fr;
+  }
+}
+
+div.ts-wrapper.select,
+.invalid div.ts-wrapper.select {
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  box-shadow: none;
+}
+
+.ts-wrapper {
+  width: 100%;
+}
+
+.ts-wrapper .ts-control,
+.ts-wrapper.single .ts-control {
+  min-height: 34px;
+  padding: 6px 30px 6px 10px;
+  border: 1px solid var(--silver);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  font: inherit;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--ink);
+  box-shadow: none;
+  cursor: pointer;
+}
+
+.ts-wrapper.single .ts-control::after {
+  display: none !important;
+}
+
+.ts-wrapper.single .ts-control {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%238E9095' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") !important;
+  background-repeat: no-repeat !important;
+  background-position: right 10px center !important;
+  background-size: 14px !important;
+}
+
+.ts-wrapper.single.dropdown-active .ts-control {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%238E9095' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m18 15-6-6-6 6'/%3E%3C/svg%3E") !important;
+}
+
+.ts-wrapper.focus .ts-control {
+  border-color: var(--blue);
+  box-shadow: 0 0 0 3px var(--info-soft);
+}
+
+.ts-wrapper.disabled .ts-control {
+  background-color: var(--sunken);
+  color: var(--pewter);
+  opacity: 1;
+  cursor: not-allowed;
+}
+
+.ts-control>input {
+  font: inherit;
+  color: var(--ink);
+}
+
+.ts-control>input::placeholder {
+  color: var(--fog);
+}
+
+.invalid .ts-wrapper .ts-control {
+  border-color: var(--bad-ink);
+}
+
+.ts-dropdown {
+  z-index: 70;
+  margin-top: 4px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--graphite);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.12);
+}
+
+.ts-dropdown .ts-dropdown-content {
+  max-height: 260px;
+  padding: 4px;
+}
+
+.ts-dropdown .option {
+  padding: 8px 10px;
+  border-radius: var(--radius);
+}
+
+.ts-dropdown .option.active {
+  background: var(--info-soft);
+  color: var(--info-ink);
+}
+
+.ts-dropdown .option.selected {
+  font-weight: 500;
+}
+
+.ts-dropdown .no-results {
+  padding: 10px 12px;
+  color: var(--pewter);
+}
+
+.ts-wrapper.plugin-clear_button .clear {
+  right: 30px;
+  width: 20px;
+  height: 20px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  font-size: 16px;
+  line-height: 1;
+  color: var(--fog);
+  opacity: 0;
+  transition: opacity 0.18s, background-color 0.18s, color 0.18s;
+}
+
+.ts-wrapper.plugin-clear_button.has-items:hover .clear,
+.ts-wrapper.plugin-clear_button.has-items.focus .clear {
+  opacity: 1;
+}
+
+.ts-wrapper.plugin-clear_button .clear:hover {
+  background: var(--ash);
+  color: var(--ink);
+}
+
+.ts-wrapper.plugin-clear_button .ts-control {
+  padding-right: 56px;
+}
+
+.ts-wrapper .ts-control .item:empty {
+  display: none;
+}
+
+.ts-wrapper.multi .ts-control>.item {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  margin: 0;
+  padding: 1px 3px 1px 10px;
+  border: 1px solid var(--info-line);
+  border-radius: 999px;
+  background: var(--info-soft);
+  font-size: 12.5px;
+  line-height: 18px;
+  font-weight: 500;
+  color: var(--info-ink);
+}
+
+.ts-wrapper.multi .ts-control>.item .remove {
+  width: 18px;
+  height: 18px;
+  display: grid;
+  place-items: center;
+  margin-left: 2px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  font-size: 14px;
+  line-height: 1;
+  color: inherit;
+  opacity: 0.7;
+}
+
+.ts-wrapper.multi .ts-control>.item .remove:hover {
+  opacity: 1;
+  background: rgba(62, 106, 225, 0.15);
+}
+
+.ts-wrapper.multi .ts-control>input {
+  flex: 1 1 120px;
+  min-width: 120px;
+}
+
+.ts-dropdown .option.selected,
+.ts-wrapper.multi .ts-dropdown .option.active {
+  background: var(--row-hover);
+}
+
+.input-action {
+  display: flex;
+  gap: 8px;
+}
+
+.input-action>.input-ic {
+  flex: 1;
+  min-width: 0;
+}
+
+.input-action>.btn {
+  flex: none;
+}
+
+.multi-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 16px;
+  margin-top: 6px;
+  font-size: 12.5px;
+  color: var(--pewter);
+}
+
+.multi-actions span {
+  margin-right: auto;
+}
+
+.multi-actions .link-icon {
+  font-size: 12.5px;
+}
+
+.multi-actions .link-icon svg {
+  width: 14px;
+  height: 14px;
+}
+
+.multi-actions .link-icon:disabled {
+  color: var(--fog);
+  text-decoration: none;
+  cursor: default;
+}
+
+.ts-wrapper.multi .ts-control {
+  min-height: 34px;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 32px 4px 6px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%238E9095' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") !important;
+  background-repeat: no-repeat !important;
+  background-position: right 10px center !important;
+  background-size: 14px !important;
+}
+
+.ts-wrapper.multi.dropdown-active .ts-control {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%238E9095' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m18 15-6-6-6 6'/%3E%3C/svg%3E") !important;
+}
+
+.ts-wrapper.multi:not(.has-items) .ts-control {
+  padding-left: 10px;
+}
+
+.ts-wrapper.multi.has-items .ts-control>input {
+  flex: 1 1 60px;
+  min-width: 60px;
+  margin: 0 !important;
+}
+
+.ts-wrapper.multi.disabled .ts-control {
+  background-image: none !important;
+}
+
+.input[readonly] {
+  background: var(--sunken);
+  color: var(--graphite);
+  cursor: default;
+}
+
+.input[readonly]:focus {
+  border-color: var(--silver);
+  box-shadow: none;
+}
+
+.input-action>.picker {
+  flex: 1;
+  min-width: 0;
+}
+
+.input-action>.input {
+  flex: 1;
+  min-width: 0;
+}
+
+.input-action>.ts-wrapper,
+.input-action>select.select {
+  flex: 1;
+  min-width: 0;
+}

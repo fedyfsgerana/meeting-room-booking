@@ -1,0 +1,104 @@
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--ink);
+}
+
+.brand-mark {
+  width: 30px;
+  height: 30px;
+  flex: none;
+  shape-rendering: geometricPrecision;
+}
+
+.brand-word {
+  display: flex;
+  flex-direction: column;
+  line-height: 1;
+}
+
+.brand-word b {
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--ink);
+}
+
+.brand-word small {
+  margin-top: 2px;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--pewter);
+}
+
+.brand-lg .brand-mark {
+  width: 36px;
+  height: 36px;
+}
+
+.brand-lg .brand-word b {
+  font-size: 16px;
+}
+
+.brand-lg .brand-word small {
+  font-size: 12px;
+}
+
+.brand-mark .bm-bg {
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+.brand-mark .bm-cal {
+  stroke-dasharray: 76;
+}
+
+.brand-mark .bm-top {
+  stroke-dasharray: 30;
+}
+
+.brand-mark .bm-check {
+  stroke-dasharray: 14;
+}
+
+.brand-mark.animate .bm-bg {
+  animation: bm-pop 0.45s cubic-bezier(0.2, 0.7, 0.2, 1) backwards;
+}
+
+.brand-mark.animate .bm-cal {
+  animation: bm-draw-cal 0.55s cubic-bezier(0.4, 0, 0.2, 1) 0.15s backwards;
+}
+
+.brand-mark.animate .bm-top {
+  animation: bm-draw-top 0.35s cubic-bezier(0.4, 0, 0.2, 1) 0.45s backwards;
+}
+
+.brand-mark.animate .bm-check {
+  animation: bm-draw-check 0.4s cubic-bezier(0.2, 0.7, 0.2, 1) 0.7s backwards;
+}
+
+@keyframes bm-pop {
+  from {
+    opacity: 0;
+    transform: scale(0.82);
+  }
+}
+
+@keyframes bm-draw-cal {
+  from {
+    stroke-dashoffset: 76;
+  }
+}
+
+@keyframes bm-draw-top {
+  from {
+    stroke-dashoffset: 30;
+  }
+}
+
+@keyframes bm-draw-check {
+  from {
+    stroke-dashoffset: 14;
+  }
+}

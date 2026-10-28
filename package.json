@@ -1,0 +1,58 @@
+{
+  "name": "meeting-room-booking",
+  "version": "1.0.0",
+  "description": "Aplikasi booking ruang meeting dengan persetujuan bertingkat, monitoring pemakaian, dan riwayat aktivitas",
+  "author": "Fedy Fs. Gerana (https://github.com/fedyfsgerana)",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/fedyfsgerana/meeting-room-booking.git"
+  },
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint",
+    "typecheck": "tsc --noEmit",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "drizzle-kit migrate",
+    "db:studio": "drizzle-kit studio",
+    "db:seed": "tsx src/backend/db/seed.ts",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "db:reset-password": "tsx src/backend/db/reset-password.ts",
+    "db:reset": "tsx src/backend/db/reset.ts",
+    "db:clean": "tsx src/backend/db/clean.ts"
+  },
+  "dependencies": {
+    "@node-rs/argon2": "^2.2.2",
+    "drizzle-orm": "^0.45.4",
+    "lucide-react": "^1.61.0",
+    "next": "16.4.3",
+    "pg": "^8.23.1",
+    "pg-boss": "^12.38.0",
+    "react": "19.3.1",
+    "react-dom": "19.3.1",
+    "server-only": "^0.0.1",
+    "tom-select": "^2.6.2",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@types/node": "^24.19.2",
+    "@types/pg": "^8.23.1",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "dotenv": "^18.0.9",
+    "drizzle-kit": "^0.31.11",
+    "eslint": "^9",
+    "eslint-config-next": "16.4.3",
+    "tsx": "^4.23.15",
+    "typescript": "^5",
+    "vitest": "^5.0.5"
+  },
+  "packageManager": "pnpm@10.17.1",
+  "engines": {
+    "node": ">=24"
+  }
+}
