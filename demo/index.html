@@ -1,0 +1,1064 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Demo — Meeting Room Booking</title>
+<meta name="description" content="Demo interaktif Meeting Room Booking dengan data contoh. Semua data tersimpan di browser.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Crect width='40' height='40' rx='10' fill='%233E6AE1'/%3E%3Crect x='10' y='12' width='20' height='18' rx='3.5' fill='none' stroke='white' stroke-width='2.4'/%3E%3Cpath d='M10 17.5h20M15 9.5v4.5M25 9.5v4.5' stroke='white' stroke-width='2.4' stroke-linecap='round'/%3E%3Cpath d='M15.6 23.6l2.9 2.9 5.9-5.9' fill='none' stroke='white' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --blue: #3E6AE1;
+  --blue-hover: #3458C2;
+  --page: #F4F4F4;
+  --surface: #FFFFFF;
+  --sunken: #F8F8F9;
+  --ash: #EFEFF0;
+  --line: #E6E7E8;
+  --silver: #D0D1D2;
+  --ink: #171A20;
+  --graphite: #2B2E33;
+  --pewter: #4F5257;
+  --fog: #6F7175;
+  --overlay: rgba(23, 26, 32, 0.45);
+  --ok-soft: #EAF5F0;
+  --ok-ink: #257B53;
+  --ok-solid: #2F9E6B;
+  --warn-soft: #FBF6E9;
+  --warn-ink: #8F6B14;
+  --warn-solid: #B07A10;
+  --bad-soft: #F9ECEA;
+  --bad-ink: #C03C2E;
+  --bad-solid: #C43D2F;
+  --info-soft: #E8EEFC;
+  --info-ink: #2F55BE;
+  --violet-soft: #F1ECFA;
+  --violet-ink: #6B46C1;
+  --radius: 6px;
+  --radius-lg: 12px;
+  --shadow-pop: 0 0 0 1px var(--line), 0 12px 32px rgba(0, 0, 0, 0.08);
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --page: #121418;
+    --surface: #1B1E24;
+    --sunken: #20242B;
+    --ash: #2A2E35;
+    --line: #2C3038;
+    --silver: #3D424B;
+    --ink: #F4F4F4;
+    --graphite: #DCDDDE;
+    --pewter: #B4B6BA;
+    --fog: #8E9095;
+    --overlay: rgba(0, 0, 0, 0.6);
+    --ok-soft: rgba(47, 158, 107, 0.16);
+    --ok-ink: #7DD3A8;
+    --warn-soft: rgba(201, 138, 18, 0.16);
+    --warn-ink: #F0C46A;
+    --bad-soft: rgba(196, 61, 47, 0.18);
+    --bad-ink: #F19A90;
+    --info-soft: rgba(62, 106, 225, 0.18);
+    --info-ink: #9DB6F5;
+    --violet-soft: rgba(107, 70, 193, 0.2);
+    --violet-ink: #C4B1F2;
+    --shadow-pop: 0 0 0 1px var(--line), 0 12px 32px rgba(0, 0, 0, 0.4);
+    color-scheme: dark;
+  }
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body {
+  font-family: "Hanken Grotesk", system-ui, -apple-system, "Segoe UI", Arial, sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+  background: var(--page);
+  color: var(--ink);
+  -webkit-font-smoothing: antialiased;
+}
+button, input, select, textarea { font: inherit; color: inherit; }
+button { cursor: pointer; }
+:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+h1, h2, h3, p { margin: 0; }
+
+.demo-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 6px 14px;
+  padding: 7px 16px;
+  background: var(--ink);
+  color: var(--page);
+  font-size: 12.5px;
+}
+.demo-bar button {
+  border: 0;
+  background: none;
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  padding: 0;
+}
+
+.mark { width: 34px; height: 34px; flex: none; }
+.brand { display: flex; align-items: center; gap: 10px; }
+.brand b { display: block; font-size: 14px; font-weight: 700; letter-spacing: 0.2px; }
+.brand small { display: block; font-size: 11.5px; color: var(--fog); margin-top: -2px; }
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  height: 36px;
+  padding: 0 14px;
+  border: 1px solid var(--silver);
+  border-radius: var(--radius);
+  background: var(--surface);
+  font-weight: 500;
+  font-size: 13.5px;
+  white-space: nowrap;
+  transition: background 0.15s, border-color 0.15s;
+}
+.btn:hover { background: var(--sunken); }
+.btn svg { width: 16px; height: 16px; }
+.btn-primary { background: var(--blue); border-color: var(--blue); color: #fff; }
+.btn-primary:hover { background: var(--blue-hover); }
+.btn-success { background: var(--ok-solid); border-color: var(--ok-solid); color: #fff; }
+.btn-danger { background: var(--bad-solid); border-color: var(--bad-solid); color: #fff; }
+.btn-warn { background: var(--warn-solid); border-color: var(--warn-solid); color: #fff; }
+.btn-success:hover, .btn-danger:hover, .btn-warn:hover { filter: brightness(0.94); }
+.btn-plain { border-color: transparent; background: transparent; }
+.btn-sm { height: 30px; padding: 0 10px; font-size: 12.5px; }
+.btn[disabled] { opacity: 0.5; cursor: not-allowed; }
+
+.field { display: grid; gap: 5px; margin-bottom: 14px; }
+.field label { font-size: 13px; font-weight: 500; color: var(--graphite); }
+.field .req { color: var(--bad-ink); }
+.input, .select, .textarea {
+  width: 100%;
+  height: 38px;
+  padding: 0 11px;
+  border: 1px solid var(--silver);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+.textarea { height: auto; padding: 8px 11px; resize: vertical; min-height: 64px; }
+.input:focus, .select:focus, .textarea:focus { outline: none; border-color: var(--blue); box-shadow: 0 0 0 3px var(--info-soft); }
+.hint { font-size: 12px; color: var(--fog); }
+.error { font-size: 12px; color: var(--bad-ink); }
+.check { display: inline-flex; align-items: center; gap: 8px; font-size: 13.5px; }
+.grid2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 16px; }
+.grid3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0 16px; }
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 9px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+.badge::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+.b-ok { background: var(--ok-soft); color: var(--ok-ink); }
+.b-warn { background: var(--warn-soft); color: var(--warn-ink); }
+.b-bad { background: var(--bad-soft); color: var(--bad-ink); }
+.b-info { background: var(--info-soft); color: var(--info-ink); }
+.b-violet { background: var(--violet-soft); color: var(--violet-ink); }
+.b-gray { background: var(--ash); color: var(--pewter); }
+
+.login {
+  min-height: calc(100vh - 34px);
+  display: grid;
+  place-items: center;
+  padding: 32px 16px;
+}
+.login-box { width: min(420px, 100%); }
+.login-box .brand { justify-content: center; margin-bottom: 22px; }
+.login-box .mark { width: 44px; height: 44px; }
+.card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+}
+.card-pad { padding: 24px; }
+.login h1 { font-size: 22px; font-weight: 600; }
+.login .lead { color: var(--fog); margin: 4px 0 20px; }
+.login .btn-primary { width: 100%; height: 40px; }
+.accounts { margin-top: 16px; }
+.accounts h2 { font-size: 13px; font-weight: 600; margin-bottom: 8px; color: var(--graphite); }
+.account {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  width: 100%;
+  padding: 9px 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+  text-align: left;
+  margin-bottom: 6px;
+}
+.account:hover { border-color: var(--blue); }
+.account b { display: block; font-weight: 500; }
+.account small { color: var(--fog); }
+.login-meta { text-align: center; font-size: 12px; color: var(--fog); margin-top: 18px; }
+.alert {
+  padding: 10px 12px;
+  border-radius: var(--radius);
+  font-size: 13px;
+  margin-bottom: 14px;
+}
+.alert-bad { background: var(--bad-soft); color: var(--bad-ink); }
+.alert-info { background: var(--info-soft); color: var(--info-ink); }
+
+.header {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  background: var(--surface);
+  border-bottom: 1px solid var(--line);
+}
+.header-in {
+  max-width: 1240px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  height: 60px;
+  padding: 0 20px;
+}
+.nav { display: flex; gap: 2px; flex: 1; overflow-x: auto; scrollbar-width: none; }
+.nav button {
+  border: 0;
+  background: none;
+  height: 60px;
+  padding: 0 12px;
+  font-weight: 500;
+  color: var(--pewter);
+  border-bottom: 2px solid transparent;
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.nav button:hover { color: var(--ink); }
+.nav button[aria-current="page"] { color: var(--blue); border-bottom-color: var(--blue); }
+.count {
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: var(--bad-solid);
+  color: #fff;
+  font-size: 11px;
+  display: inline-grid;
+  place-items: center;
+}
+.me { display: flex; align-items: center; gap: 10px; }
+.avatar {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-weight: 600;
+  font-size: 13px;
+  color: #fff;
+}
+.me-text { line-height: 1.25; }
+.me-text b { display: block; font-size: 13px; font-weight: 600; }
+.me-text small { font-size: 12px; color: var(--fog); }
+
+.main { max-width: 1240px; margin: 0 auto; padding: 24px 20px 64px; }
+.head { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 12px; margin-bottom: 18px; }
+.head h1 { font-size: 24px; font-weight: 600; }
+.head p { color: var(--fog); margin-top: 2px; max-width: 70ch; }
+.toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+
+.rooms { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; margin-bottom: 18px; }
+.room { padding: 14px 16px; }
+.room h3 { font-size: 15px; font-weight: 600; }
+.room .sub { font-size: 12.5px; color: var(--fog); margin: 2px 0 10px; }
+.room .now { font-size: 12.5px; color: var(--pewter); margin-top: 6px; }
+
+.timeline { overflow-x: auto; }
+.tl { min-width: 820px; padding: 14px 16px 18px; }
+.tl-row { display: grid; grid-template-columns: 150px 1fr; align-items: stretch; }
+.tl-row + .tl-row { border-top: 1px solid var(--line); }
+.tl-name { padding: 12px 10px 12px 0; font-weight: 500; font-size: 13px; }
+.tl-name small { display: block; color: var(--fog); font-weight: 400; font-size: 12px; }
+.tl-track { position: relative; min-height: 56px; background-image: linear-gradient(to right, var(--line) 1px, transparent 1px); background-size: calc(100% / 11) 100%; }
+.tl-hours { display: grid; grid-template-columns: 150px 1fr; font-size: 11.5px; color: var(--fog); padding-bottom: 6px; }
+.tl-hours div:last-child { display: flex; justify-content: space-between; }
+.slot {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: calc(100% / 22);
+  border: 0;
+  background: transparent;
+}
+.slot:hover { background: var(--info-soft); }
+.slot:hover::after { content: "+"; color: var(--info-ink); font-weight: 600; }
+.block {
+  position: absolute;
+  top: 6px;
+  bottom: 6px;
+  border-radius: var(--radius);
+  padding: 4px 8px;
+  font-size: 12px;
+  line-height: 1.3;
+  overflow: hidden;
+  border: 0;
+  text-align: left;
+  border-left: 3px solid currentColor;
+}
+.block b { display: block; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.block span { white-space: nowrap; }
+.now-line { position: absolute; top: 0; bottom: 0; width: 2px; background: var(--bad-solid); z-index: 2; pointer-events: none; }
+.tl-off { position: absolute; inset: 0; background: repeating-linear-gradient(-45deg, var(--sunken), var(--sunken) 6px, var(--ash) 6px, var(--ash) 12px); display: grid; place-items: center; font-size: 12px; color: var(--fog); }
+.legend { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 12px; font-size: 12px; color: var(--fog); }
+
+.table-wrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+th, td { text-align: left; padding: 11px 14px; border-bottom: 1px solid var(--line); vertical-align: middle; }
+th { font-size: 12px; font-weight: 500; color: var(--fog); background: var(--sunken); white-space: nowrap; }
+tbody tr:last-child td { border-bottom: 0; }
+tbody tr:hover td { background: var(--sunken); }
+.cell-sub { font-size: 12px; color: var(--fog); }
+.actions { display: flex; gap: 6px; justify-content: flex-end; flex-wrap: wrap; }
+.empty { padding: 40px 16px; text-align: center; color: var(--fog); }
+.empty b { display: block; color: var(--ink); font-size: 15px; margin-bottom: 4px; }
+
+.tabs { display: inline-flex; padding: 3px; background: var(--ash); border-radius: var(--radius); gap: 2px; margin-bottom: 14px; }
+.tabs button { border: 0; background: none; padding: 6px 14px; border-radius: 4px; font-weight: 500; color: var(--pewter); display: inline-flex; gap: 6px; align-items: center; }
+.tabs button[aria-pressed="true"] { background: var(--surface); color: var(--ink); box-shadow: 0 1px 2px rgba(0,0,0,0.08); }
+
+.stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin-bottom: 18px; }
+.stat { padding: 14px 16px; }
+.stat small { color: var(--fog); font-size: 12.5px; }
+.stat b { display: block; font-size: 26px; font-weight: 600; line-height: 1.2; margin-top: 2px; }
+.bar { height: 8px; border-radius: 999px; background: var(--ash); overflow: hidden; min-width: 90px; }
+.bar i { display: block; height: 100%; background: var(--blue); border-radius: inherit; }
+
+.avail { padding: 10px 12px; border-radius: var(--radius); font-size: 13px; margin-bottom: 14px; }
+.avail-ok { background: var(--ok-soft); color: var(--ok-ink); }
+.avail-bad { background: var(--bad-soft); color: var(--bad-ink); }
+.avail-wait { background: var(--sunken); color: var(--fog); }
+
+.backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  background: var(--overlay);
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  animation: fade 0.15s ease;
+}
+.modal {
+  width: min(560px, 100%);
+  max-height: calc(100vh - 32px);
+  overflow: auto;
+  background: var(--surface);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-pop);
+  animation: pop 0.18s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+.modal-head { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; border-bottom: 1px solid var(--line); }
+.modal-head h2 { font-size: 16px; font-weight: 600; }
+.modal-body { padding: 18px 20px 4px; }
+.modal-foot { display: flex; justify-content: flex-end; gap: 8px; padding: 12px 20px 16px; }
+.x { border: 0; background: none; width: 32px; height: 32px; border-radius: 50%; color: var(--fog); font-size: 20px; line-height: 1; }
+.x:hover { background: var(--ash); }
+.confirm { width: min(400px, 100%); text-align: center; padding: 28px 24px 22px; position: relative; }
+.confirm .x { position: absolute; top: 12px; right: 12px; }
+.confirm .ic { width: 56px; height: 56px; border-radius: 50%; margin: 0 auto 16px; display: grid; place-items: center; }
+.confirm .ic svg { width: 26px; height: 26px; }
+.confirm h2 { font-size: 18px; font-weight: 600; }
+.confirm p { color: var(--pewter); margin-top: 6px; }
+.confirm .summary { margin-top: 14px; padding: 10px 14px; border-radius: 8px; background: var(--sunken); text-align: left; font-size: 13px; }
+.confirm .summary div { display: flex; justify-content: space-between; gap: 12px; padding: 3px 0; }
+.confirm .summary dt { color: var(--fog); }
+.confirm .summary dd { margin: 0; font-weight: 500; text-align: right; }
+.confirm .body { text-align: left; margin-top: 14px; }
+.confirm .body .field { margin-bottom: 0; }
+.confirm .btns { display: flex; gap: 10px; margin-top: 22px; }
+.confirm .btns .btn { flex: 1; height: 40px; }
+.ic-ok { background: var(--ok-soft); color: var(--ok-ink); }
+.ic-bad { background: var(--bad-soft); color: var(--bad-ink); }
+.ic-warn { background: var(--warn-soft); color: var(--warn-ink); }
+.ic-info { background: var(--info-soft); color: var(--info-ink); }
+
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: 24px;
+  transform: translateX(-50%);
+  z-index: 60;
+  padding: 10px 16px;
+  border-radius: var(--radius);
+  background: var(--ink);
+  color: var(--page);
+  font-size: 13.5px;
+  box-shadow: var(--shadow-pop);
+  animation: rise 0.2s ease;
+  max-width: calc(100vw - 32px);
+}
+
+.detail dl { display: grid; grid-template-columns: 140px 1fr; gap: 8px 14px; margin: 0 0 16px; font-size: 13.5px; }
+.detail dt { color: var(--fog); }
+.detail dd { margin: 0; }
+.history { list-style: none; padding: 0; margin: 0 0 12px; border-left: 2px solid var(--line); }
+.history li { position: relative; padding: 0 0 12px 16px; font-size: 13px; }
+.history li::before { content: ""; position: absolute; left: -6px; top: 5px; width: 10px; height: 10px; border-radius: 50%; background: var(--surface); border: 2px solid var(--blue); }
+.history small { display: block; color: var(--fog); }
+
+@keyframes fade { from { opacity: 0; } }
+@keyframes pop { from { opacity: 0; transform: scale(0.97); } }
+@keyframes rise { from { opacity: 0; transform: translate(-50%, 8px); } }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
+
+@media (max-width: 860px) {
+  .header-in { flex-wrap: wrap; height: auto; padding: 10px 16px 0; gap: 8px 12px; }
+  .nav { order: 3; flex-basis: 100%; }
+  .nav button { height: 44px; }
+  .me { margin-left: auto; }
+  .me-text { display: none; }
+  .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .grid2, .grid3 { grid-template-columns: 1fr; }
+  .main { padding: 18px 14px 48px; }
+  .detail dl { grid-template-columns: 1fr; gap: 2px; }
+  .detail dd { margin-bottom: 8px; }
+}
+</style>
+</head>
+<body>
+<div class="demo-bar" role="note">
+  <span>Mode demo: data contoh disimpan di browser Anda, tidak dikirim ke server.</span>
+  <button type="button" data-action="reset-demo">Atur ulang data demo</button>
+  <a href="https://github.com/fedyfsgerana/meeting-room-booking" style="color:inherit">Kode sumber di GitHub</a>
+</div>
+<div id="app"></div>
+<div id="layer"></div>
+
+<script>
+(() => {
+  const STORE = "mrb-demo-v1";
+  const SESSION = "mrb-demo-session";
+  const OPEN = 7 * 60;
+  const CLOSE = 18 * 60;
+  const PASSWORD = "demo1234";
+  const ACTIVE = ["draft", "approved_dept", "approved"];
+
+  const ICON = {
+    mark: '<svg class="mark" viewBox="0 0 40 40" aria-hidden="true"><rect width="40" height="40" rx="10" fill="#3E6AE1"/><rect x="10" y="12" width="20" height="18" rx="3.5" fill="none" stroke="#fff" stroke-width="2.4"/><path d="M10 17.5h20M15 9.5v4.5M25 9.5v4.5" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round"/><path d="M15.6 23.6l2.9 2.9 5.9-5.9" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+    plus: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>',
+    check: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M8 12l3 3 5-6"/></svg>',
+    x: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>',
+    cancel: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M15 9l-6 6M9 9l6 6"/></svg>',
+    save: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><path d="M17 21v-8H7v8M7 3v5h8"/></svg>',
+    cal: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18M12 14v4M10 16h4"/></svg>',
+    trash: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/></svg>',
+    logout: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></svg>',
+    restore: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/></svg>',
+  };
+
+  const ROLE_LABEL = { admin: "Administrator", requester: "Pemesan", approver: "Penyetuju", pic: "Penanggung Jawab Ruang" };
+  const ROLE_PAGES = {
+    admin: ["home", "bookings", "approvals", "monitoring", "rooms", "activity"],
+    requester: ["home", "bookings", "monitoring"],
+    approver: ["home", "bookings", "approvals", "monitoring"],
+    pic: ["home", "bookings", "approvals", "monitoring"],
+  };
+  const PAGE_LABEL = { home: "Beranda", bookings: "Booking ruang", approvals: "Persetujuan", monitoring: "Monitoring", rooms: "Ruangan", activity: "Riwayat aktivitas" };
+  const STATUS = {
+    draft: ["Draft", "b-warn"],
+    approved_dept: ["Menunggu cek ruang", "b-violet"],
+    approved: ["Disetujui", "b-ok"],
+    done: ["Selesai", "b-gray"],
+    rejected: ["Ditolak", "b-bad"],
+    cancelled: ["Dibatalkan", "b-gray"],
+  };
+  const AVATAR = ["#3E6AE1", "#2F9E6B", "#B07A10", "#6B46C1", "#0B7FAB"];
+
+  const pad = (n) => String(n).padStart(2, "0");
+  const ymd = (d) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+  const today = () => ymd(new Date());
+  const addDays = (date, days) => { const d = new Date(`${date}T00:00:00`); d.setDate(d.getDate() + days); return ymd(d); };
+  const clock = (m) => `${pad(Math.floor(m / 60))}.${pad(m % 60)}`;
+  const toMin = (t) => { const [h, m] = t.split(":").map(Number); return h * 60 + m; };
+  const toTime = (m) => `${pad(Math.floor(m / 60))}:${pad(m % 60)}`;
+  const nowMin = () => { const d = new Date(); return d.getHours() * 60 + d.getMinutes(); };
+  const longDate = (date) => new Date(`${date}T00:00:00`).toLocaleDateString("id-ID", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
+  const shortDate = (date) => new Date(`${date}T00:00:00`).toLocaleDateString("id-ID", { weekday: "short", day: "numeric", month: "short" });
+  const stamp = () => new Date().toLocaleString("id-ID", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
+  const esc = (v) => String(v ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  const initials = (name) => name.split(/\s+/).slice(0, 2).map((w) => w[0]).join("").toUpperCase();
+
+  function nextWorkday(date) {
+    let d = date;
+    while (new Date(`${d}T00:00:00`).getDay() === 0) d = addDays(d, 1);
+    return d;
+  }
+
+  function seed() {
+    const t = nextWorkday(today());
+    const t1 = nextWorkday(addDays(t, 1));
+    const y = addDays(today(), -1);
+    return {
+      departments: [
+        { id: 1, code: "IT", name: "Information Technology" },
+        { id: 2, code: "HR", name: "Human Resources" },
+        { id: 3, code: "FIN", name: "Finance" },
+        { id: 4, code: "GA", name: "General Affairs" },
+        { id: 5, code: "MKT", name: "Marketing" },
+      ],
+      users: [
+        { id: 1, name: "Administrator", email: "admin@demo.test", role: "admin", departmentId: 1, job: "Administrator Sistem" },
+        { id: 2, name: "Dewi Lestari", email: "pemesan@demo.test", role: "requester", departmentId: 2, job: "Staf Rekrutmen" },
+        { id: 3, name: "Bima Santoso", email: "penyetuju@demo.test", role: "approver", departmentId: 2, job: "Manajer HR", approves: [2, 3, 5] },
+        { id: 4, name: "Rina Wijaya", email: "pj@demo.test", role: "pic", departmentId: 4, job: "Koordinator Fasilitas" },
+      ],
+      rooms: [
+        { id: 1, name: "Ruang Merapi", location: "Lantai 2", capacity: 8, status: "active", picId: 4, facilities: "TV, papan tulis" },
+        { id: 2, name: "Ruang Rinjani", location: "Lantai 3", capacity: 12, status: "active", picId: 4, facilities: "Proyektor, video conference" },
+        { id: 3, name: "Ruang Bromo", location: "Lantai 1", capacity: 6, status: "active", picId: 4, facilities: "TV" },
+        { id: 4, name: "Aula Semeru", location: "Lantai 1", capacity: 40, status: "repair", picId: 4, facilities: "Sound system, panggung" },
+      ],
+      bookings: [
+        { id: 1, roomId: 1, date: t, start: 9 * 60, end: 10 * 60 + 30, topic: "Interview kandidat UI/UX", participants: 4, requesterId: 2, departmentId: 2, approverId: 3, status: "approved", tele: "", history: [["Diajukan", "Dewi Lestari"], ["Disetujui penyetuju", "Bima Santoso"], ["Ruang siap", "Rina Wijaya"]] },
+        { id: 2, roomId: 2, date: t, start: 13 * 60, end: 14 * 60 + 30, topic: "Review anggaran kuartal", participants: 9, requesterId: 2, departmentId: 3, approverId: 3, status: "approved_dept", tele: "Zoom", history: [["Diajukan", "Dewi Lestari"], ["Disetujui penyetuju", "Bima Santoso"]] },
+        { id: 3, roomId: 3, date: t, start: 15 * 60, end: 16 * 60, topic: "Onboarding karyawan baru", participants: 5, requesterId: 2, departmentId: 2, approverId: 3, status: "draft", tele: "", history: [["Diajukan", "Dewi Lestari"]] },
+        { id: 4, roomId: 2, date: t1, start: 10 * 60, end: 12 * 60, topic: "Workshop kampanye produk", participants: 10, requesterId: 2, departmentId: 5, approverId: 3, status: "draft", tele: "Google Meet", history: [["Diajukan", "Dewi Lestari"]] },
+        { id: 5, roomId: 1, date: y, start: 8 * 60, end: 9 * 60, topic: "Briefing mingguan", participants: 6, requesterId: 2, departmentId: 2, approverId: 3, status: "approved", tele: "", history: [["Diajukan", "Dewi Lestari"], ["Disetujui penyetuju", "Bima Santoso"], ["Ruang siap", "Rina Wijaya"]] },
+      ],
+      activity: [
+        { at: stamp(), user: "Sistem", action: "Data demo", target: "Data contoh dimuat", tone: "b-info" },
+      ],
+      seq: { booking: 6, room: 5 },
+    };
+  }
+
+  let db = load();
+  let me = null;
+  let page = "home";
+  let viewDate = nextWorkday(today());
+  let approvalTab = "approver";
+
+  function load() {
+    try {
+      const raw = localStorage.getItem(STORE);
+      if (raw) return JSON.parse(raw);
+    } catch {}
+    const data = seed();
+    save(data);
+    return data;
+  }
+  function save(data = db) {
+    try { localStorage.setItem(STORE, JSON.stringify(data)); } catch {}
+  }
+  function log(action, target, tone = "b-info") {
+    db.activity.unshift({ at: stamp(), user: me ? me.name : "Sistem", action, target, tone });
+    db.activity = db.activity.slice(0, 200);
+  }
+
+  const user = (id) => db.users.find((u) => u.id === id);
+  const room = (id) => db.rooms.find((r) => r.id === id);
+  const dept = (id) => db.departments.find((d) => d.id === id);
+
+  function statusOf(b) {
+    if (b.status === "approved") {
+      const end = new Date(`${b.date}T${toTime(b.end)}:00`);
+      if (end < new Date()) return "done";
+    }
+    return b.status;
+  }
+  function badge(status) {
+    const [label, cls] = STATUS[status];
+    return `<span class="badge ${cls}">${label}</span>`;
+  }
+  function blockColor(status) {
+    return { draft: "b-warn", approved_dept: "b-violet", approved: "b-info", done: "b-gray" }[status] || "b-gray";
+  }
+
+  function toast(message) {
+    const el = document.createElement("div");
+    el.className = "toast";
+    el.setAttribute("role", "status");
+    el.textContent = message;
+    document.body.appendChild(el);
+    setTimeout(() => el.remove(), 2600);
+  }
+
+  const layer = document.getElementById("layer");
+  function closeLayer() { layer.innerHTML = ""; }
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeLayer(); });
+
+  function openModal(title, body, foot, onMount) {
+    layer.innerHTML = `<div class="backdrop" data-close><div class="modal" role="dialog" aria-modal="true" aria-labelledby="m-title">
+      <div class="modal-head"><h2 id="m-title">${title}</h2><button class="x" type="button" data-close aria-label="Tutup">×</button></div>
+      <div class="modal-body">${body}</div><div class="modal-foot">${foot}</div></div></div>`;
+    bindClose();
+    onMount?.(layer.querySelector(".modal"));
+    layer.querySelector("input, select, textarea, button:not(.x)")?.focus();
+  }
+
+  function confirmBox({ tone, icon, title, text, summary = [], body = "", label, variant, onConfirm }) {
+    layer.innerHTML = `<div class="backdrop" data-close><div class="modal confirm" role="dialog" aria-modal="true" aria-labelledby="c-title">
+      <button class="x" type="button" data-close aria-label="Tutup">×</button>
+      <div class="ic ic-${tone}">${icon}</div>
+      <h2 id="c-title">${title}</h2><p>${text}</p>
+      ${summary.length ? `<dl class="summary">${summary.map(([k, v]) => `<div><dt>${k}</dt><dd>${esc(v)}</dd></div>`).join("")}</dl>` : ""}
+      ${body ? `<div class="body">${body}</div>` : ""}
+      <div class="btns"><button class="btn" type="button" data-close>Kembali</button><button class="btn btn-${variant}" type="button" data-ok>${label}</button></div>
+    </div></div>`;
+    bindClose();
+    const ok = layer.querySelector("[data-ok]");
+    const reason = layer.querySelector("textarea");
+    if (reason) {
+      ok.disabled = true;
+      reason.addEventListener("input", () => { ok.disabled = reason.value.trim().length < 3; });
+      reason.focus();
+    } else ok.focus();
+    ok.addEventListener("click", () => {
+      const result = onConfirm(reason ? reason.value.trim() : null);
+      closeLayer();
+      if (result) toast(result);
+      render();
+    });
+  }
+
+  function bindClose() {
+    layer.querySelectorAll("[data-close]").forEach((el) =>
+      el.addEventListener("click", (e) => { if (e.target === el) closeLayer(); }),
+    );
+  }
+
+  const reasonField = (label) => `<div class="field"><label for="reason">${label} <span class="req">*</span></label><textarea class="textarea" id="reason" rows="2" placeholder="Masukkan alasan" maxlength="200"></textarea><span class="hint">Minimal 3 karakter. Tercatat di riwayat aktivitas.</span></div>`;
+
+  function availability({ roomId, date, start, end, exclude }) {
+    const r = room(roomId);
+    if (!r) return [false, "Pilih ruangan."];
+    if (r.status !== "active") return [false, `${r.name} sedang dalam perbaikan dan tidak bisa dipesan.`];
+    if (!date) return [false, "Pilih tanggal."];
+    if (new Date(`${date}T00:00:00`).getDay() === 0) return [false, "Hari Minggu bukan hari operasional."];
+    if (date < today() || (date === today() && start < nowMin())) return [false, "Waktu yang dipilih sudah lewat."];
+    if (!(start < end)) return [false, "Jam selesai harus setelah jam mulai."];
+    if (start < OPEN || end > CLOSE) return [false, `Di luar jam operasional ${clock(OPEN)}–${clock(CLOSE)}.`];
+    const clash = db.bookings.find((b) => b.id !== exclude && b.roomId === roomId && b.date === date && ACTIVE.includes(b.status) && b.start < end && start < b.end);
+    if (clash) return [false, `Ruang sudah dipakai pukul ${clock(clash.start)}–${clock(clash.end)} untuk "${clash.topic}".`];
+    return [true, `${r.name} tersedia ${clock(start)}–${clock(end)}.`];
+  }
+
+  function bookingForm(prefill = {}) {
+    const myDepts = me.role === "admin" ? db.departments : db.departments.filter((d) => d.id === me.departmentId || (me.approves || []).includes(d.id));
+    const options = (list, sel, fn) => list.map((x) => `<option value="${x.id}" ${x.id === sel ? "selected" : ""}>${esc(fn(x))}</option>`).join("");
+    const date = prefill.date || viewDate;
+    const start = prefill.start ?? Math.max(OPEN, Math.ceil(nowMin() / 30) * 30);
+    const s = Math.min(start, CLOSE - 60);
+    const body = `<form id="bf" novalidate>
+      <div class="field"><label for="bf-topic">Topik meeting <span class="req">*</span></label><input class="input" id="bf-topic" name="topic" maxlength="100" placeholder="Masukkan topik meeting" value="${esc(prefill.topic || "")}"></div>
+      <div class="grid2">
+        <div class="field"><label for="bf-room">Ruangan <span class="req">*</span></label><select class="select" id="bf-room" name="roomId">${options(db.rooms, prefill.roomId || 1, (r) => `${r.name} · ${r.capacity} orang${r.status === "active" ? "" : " (perbaikan)"}`)}</select></div>
+        <div class="field"><label for="bf-dept">Departemen <span class="req">*</span></label><select class="select" id="bf-dept" name="departmentId">${options(myDepts, me.departmentId, (d) => `${d.name} (${d.code})`)}</select></div>
+      </div>
+      <div class="grid3">
+        <div class="field"><label for="bf-date">Tanggal <span class="req">*</span></label><input class="input" type="date" id="bf-date" name="date" min="${today()}" value="${date}"></div>
+        <div class="field"><label for="bf-start">Mulai <span class="req">*</span></label><input class="input" type="time" id="bf-start" name="start" step="1800" value="${toTime(s)}"></div>
+        <div class="field"><label for="bf-end">Selesai <span class="req">*</span></label><input class="input" type="time" id="bf-end" name="end" step="1800" value="${toTime(prefill.end ?? s + 60)}"></div>
+      </div>
+      <div id="bf-avail" class="avail avail-wait">Memeriksa ketersediaan…</div>
+      <div class="grid2">
+        <div class="field"><label for="bf-people">Jumlah peserta <span class="req">*</span></label><input class="input" type="number" id="bf-people" name="participants" min="1" max="100" value="${prefill.participants || 4}"></div>
+        <div class="field"><label for="bf-tele">Teleconference</label><select class="select" id="bf-tele" name="tele"><option value="">Tidak</option><option>Zoom</option><option>Google Meet</option><option>Microsoft Teams</option></select></div>
+      </div>
+      <p id="bf-error" class="error" role="alert" style="margin-bottom:12px"></p>
+    </form>`;
+    const foot = `<button class="btn" type="button" data-close>Batal</button><button class="btn btn-primary" type="submit" form="bf" id="bf-submit">${ICON.cal}Ajukan booking</button>`;
+    openModal("Booking ruang", body, foot, (modal) => {
+      const form = modal.querySelector("#bf");
+      const avail = modal.querySelector("#bf-avail");
+      const read = () => {
+        const f = new FormData(form);
+        return {
+          topic: String(f.get("topic")).trim(),
+          roomId: Number(f.get("roomId")),
+          departmentId: Number(f.get("departmentId")),
+          date: String(f.get("date")),
+          start: f.get("start") ? toMin(String(f.get("start"))) : NaN,
+          end: f.get("end") ? toMin(String(f.get("end"))) : NaN,
+          participants: Number(f.get("participants")),
+          tele: String(f.get("tele")),
+        };
+      };
+      const check = () => {
+        const v = read();
+        const [ok, text] = availability(v);
+        avail.className = `avail ${ok ? "avail-ok" : "avail-bad"}`;
+        avail.textContent = text;
+        return ok;
+      };
+      form.addEventListener("input", check);
+      check();
+      form.addEventListener("submit", (e) => {
+        e.preventDefault();
+        const v = read();
+        const err = modal.querySelector("#bf-error");
+        if (v.topic.length < 3) return (err.textContent = "Isi topik meeting minimal 3 karakter.");
+        if (!(v.participants >= 1)) return (err.textContent = "Isi jumlah peserta.");
+        if (v.participants > room(v.roomId).capacity) return (err.textContent = `Peserta melebihi kapasitas ${room(v.roomId).name} (${room(v.roomId).capacity} orang).`);
+        if (!check()) return (err.textContent = "Periksa ketersediaan ruang di atas.");
+        const approver = db.users.find((u) => u.role === "approver" && (u.approves || []).includes(v.departmentId));
+        const isPic = room(v.roomId).picId === me.id;
+        const b = { id: db.seq.booking++, ...v, requesterId: me.id, approverId: approver ? approver.id : null, status: isPic ? "approved" : "draft", history: [["Diajukan", me.name]] };
+        if (isPic) b.history.push(["Langsung disetujui (penanggung jawab ruang)", me.name]);
+        db.bookings.push(b);
+        log("Ajukan", `${v.topic} · ${room(v.roomId).name}`, "b-info");
+        save();
+        closeLayer();
+        viewDate = v.date;
+        toast(isPic ? "Booking langsung disetujui karena Anda penanggung jawab ruang ini." : "Booking diajukan dan menunggu persetujuan penyetuju.");
+        render();
+      });
+    });
+  }
+
+  function bookingDetail(id) {
+    const b = db.bookings.find((x) => x.id === id);
+    const st = statusOf(b);
+    const r = room(b.roomId);
+    const body = `<div class="detail"><dl>
+      <dt>Status</dt><dd>${badge(st)}</dd>
+      <dt>Ruangan</dt><dd>${esc(r.name)} · ${esc(r.location)}</dd>
+      <dt>Jadwal</dt><dd>${longDate(b.date)}, ${clock(b.start)}–${clock(b.end)}</dd>
+      <dt>Pemesan</dt><dd>${esc(user(b.requesterId).name)} · ${esc(dept(b.departmentId).code)}</dd>
+      <dt>Penyetuju</dt><dd>${b.approverId ? esc(user(b.approverId).name) : "-"}</dd>
+      <dt>Peserta</dt><dd>${b.participants} orang</dd>
+      <dt>Teleconference</dt><dd>${b.tele ? esc(b.tele) : "Tidak"}</dd>
+      ${b.reason ? `<dt>Alasan</dt><dd>${esc(b.reason)}</dd>` : ""}
+    </dl><h3 style="font-size:13px;margin-bottom:8px">Riwayat</h3><ul class="history">${b.history.map(([a, w]) => `<li>${esc(a)}<small>${esc(w)}</small></li>`).join("")}</ul></div>`;
+    const canCancel = ACTIVE.includes(st) && (b.requesterId === me.id || me.role === "admin");
+    const foot = `${canCancel ? `<button class="btn btn-danger" type="button" data-cancel>${ICON.cancel}Batalkan</button>` : ""}<button class="btn" type="button" data-close>Tutup</button>`;
+    openModal(esc(b.topic), body, foot, (modal) => {
+      modal.querySelector("[data-cancel]")?.addEventListener("click", () => cancelBooking(b.id));
+    });
+  }
+
+  function cancelBooking(id) {
+    const b = db.bookings.find((x) => x.id === id);
+    confirmBox({
+      tone: "bad", icon: ICON.cancel, title: "Batalkan booking?", variant: "danger", label: "Batalkan",
+      text: `${b.topic}. Ruang kembali tersedia untuk orang lain.`,
+      summary: [["Ruang", room(b.roomId).name], ["Jadwal", `${shortDate(b.date)} · ${clock(b.start)}–${clock(b.end)}`]],
+      body: reasonField("Alasan pembatalan"),
+      onConfirm: (reason) => {
+        b.status = "cancelled"; b.reason = reason; b.history.push([`Dibatalkan: ${reason}`, me.name]);
+        log("Batalkan", b.topic, "b-bad"); save();
+        return "Booking dibatalkan. Ruang kembali tersedia.";
+      },
+    });
+  }
+
+  function approvalQueue(mode) {
+    if (mode === "approver") {
+      return db.bookings.filter((b) => b.status === "draft" && (me.role === "admin" || (me.role === "approver" && (me.approves || []).includes(b.departmentId))));
+    }
+    return db.bookings.filter((b) => b.status === "approved_dept" && (me.role === "admin" || (me.role === "pic" && room(b.roomId).picId === me.id)));
+  }
+
+  function decide(id, mode, approve) {
+    const b = db.bookings.find((x) => x.id === id);
+    const summary = [["Ruang", room(b.roomId).name], ["Jadwal", `${shortDate(b.date)} · ${clock(b.start)}–${clock(b.end)}`], ["Pemesan", user(b.requesterId).name]];
+    if (approve) {
+      confirmBox({
+        tone: "ok", icon: ICON.check, variant: "success",
+        title: mode === "approver" ? "Setujui booking?" : "Ruang sudah siap?",
+        label: mode === "approver" ? "Setujui" : "Ruang siap",
+        text: mode === "approver" ? "Booking diteruskan ke penanggung jawab ruang untuk cek kesiapan." : "Booking menjadi Disetujui dan ruang dipakai sesuai jadwal.",
+        summary,
+        onConfirm: () => {
+          b.status = mode === "approver" ? "approved_dept" : "approved";
+          b.history.push([mode === "approver" ? "Disetujui penyetuju" : "Ruang siap", me.name]);
+          log(mode === "approver" ? "Setujui" : "Ruang siap", b.topic, "b-ok"); save();
+          return mode === "approver" ? "Booking disetujui dan diteruskan ke penanggung jawab ruang." : "Ruang siap. Booking disetujui.";
+        },
+      });
+    } else {
+      confirmBox({
+        tone: "bad", icon: ICON.x, variant: "danger", title: "Tolak booking?", label: "Tolak",
+        text: `${b.topic}. Ruang kembali tersedia.`, summary, body: reasonField("Alasan penolakan"),
+        onConfirm: (reason) => {
+          b.status = "rejected"; b.reason = reason; b.history.push([`Ditolak: ${reason}`, me.name]);
+          log("Tolak", b.topic, "b-bad"); save();
+          return "Booking ditolak.";
+        },
+      });
+    }
+  }
+
+  function roomForm(id) {
+    const r = id ? room(id) : { name: "", location: "", capacity: 6, status: "active", facilities: "" };
+    const body = `<form id="rf" novalidate>
+      <div class="grid2">
+        <div class="field"><label for="rf-name">Nama ruang <span class="req">*</span></label><input class="input" id="rf-name" name="name" maxlength="60" placeholder="Masukkan nama ruang" value="${esc(r.name)}"></div>
+        <div class="field"><label for="rf-loc">Lokasi <span class="req">*</span></label><input class="input" id="rf-loc" name="location" maxlength="60" placeholder="Masukkan lokasi" value="${esc(r.location)}"></div>
+        <div class="field"><label for="rf-cap">Kapasitas <span class="req">*</span></label><input class="input" type="number" id="rf-cap" name="capacity" min="1" max="200" value="${r.capacity}"></div>
+        <div class="field"><label for="rf-status">Status</label><select class="select" id="rf-status" name="status"><option value="active" ${r.status === "active" ? "selected" : ""}>Aktif</option><option value="repair" ${r.status === "repair" ? "selected" : ""}>Perbaikan</option></select></div>
+      </div>
+      <div class="field"><label for="rf-fac">Fasilitas</label><input class="input" id="rf-fac" name="facilities" maxlength="100" placeholder="Contoh: TV, proyektor" value="${esc(r.facilities)}"></div>
+      <p id="rf-error" class="error" role="alert" style="margin-bottom:12px"></p>
+    </form>`;
+    const foot = `<button class="btn" type="button" data-close>Batal</button><button class="btn btn-primary" type="submit" form="rf">${ICON.save}${id ? "Simpan perubahan" : "Simpan"}</button>`;
+    openModal(id ? "Ubah ruangan" : "Tambah ruangan", body, foot, (modal) => {
+      modal.querySelector("#rf").addEventListener("submit", (e) => {
+        e.preventDefault();
+        const f = new FormData(e.target);
+        const v = { name: String(f.get("name")).trim(), location: String(f.get("location")).trim(), capacity: Number(f.get("capacity")), status: String(f.get("status")), facilities: String(f.get("facilities")).trim() };
+        const err = modal.querySelector("#rf-error");
+        if (v.name.length < 3) return (err.textContent = "Nama ruang minimal 3 karakter.");
+        if (!v.location) return (err.textContent = "Isi lokasi ruang.");
+        if (!(v.capacity >= 1)) return (err.textContent = "Kapasitas minimal 1 orang.");
+        if (db.rooms.some((x) => x.id !== id && x.name.toLowerCase() === v.name.toLowerCase())) return (err.textContent = "Nama ruang sudah dipakai.");
+        if (id) { Object.assign(r, v); log("Ubah", `Ruangan ${v.name}`, "b-info"); }
+        else { db.rooms.push({ id: db.seq.room++, picId: 4, ...v }); log("Tambah", `Ruangan ${v.name}`, "b-ok"); }
+        save(); closeLayer(); toast(id ? "Perubahan ruangan disimpan." : "Ruangan ditambahkan."); render();
+      });
+    });
+  }
+
+  function deleteRoom(id) {
+    const r = room(id);
+    if (db.bookings.some((b) => b.roomId === id)) return toast(`${r.name} sudah punya riwayat booking. Ubah statusnya menjadi Perbaikan.`);
+    confirmBox({
+      tone: "bad", icon: ICON.trash, variant: "danger", title: "Hapus ruangan?", label: "Hapus ruangan",
+      text: `${r.name} dihapus dari daftar ruangan.`, summary: [["Lokasi", r.location], ["Kapasitas", `${r.capacity} orang`]],
+      body: reasonField("Alasan penghapusan"),
+      onConfirm: (reason) => {
+        db.rooms = db.rooms.filter((x) => x.id !== id);
+        log("Hapus", `Ruangan ${r.name} · ${reason}`, "b-bad"); save();
+        return "Ruangan dihapus.";
+      },
+    });
+  }
+
+  function renderLogin(message = "") {
+    document.getElementById("app").innerHTML = `<main class="login">
+      <div class="login-box">
+        <div class="brand">${ICON.mark}<div><b>Meeting Room</b><small>Booking</small></div></div>
+        <div class="card card-pad">
+          <h1>Selamat datang</h1>
+          <p class="lead">Masuk untuk memesan ruang meeting.</p>
+          ${message ? `<div class="alert alert-bad" role="alert">${message}</div>` : ""}
+          <form id="login" novalidate>
+            <div class="field"><label for="email">Email</label><input class="input" id="email" name="email" type="email" autocomplete="email" placeholder="Masukkan email"></div>
+            <div class="field"><label for="password">Password</label><input class="input" id="password" name="password" type="password" autocomplete="current-password" placeholder="Masukkan password"></div>
+            <button class="btn btn-primary" type="submit">Masuk</button>
+          </form>
+          <div class="accounts">
+            <h2>Akun demo · password ${PASSWORD}</h2>
+            ${db.users.map((u) => `<button class="account" type="button" data-email="${u.email}"><span><b>${esc(ROLE_LABEL[u.role])}</b><small>${esc(u.email)}</small></span><small>Isi otomatis</small></button>`).join("")}
+          </div>
+        </div>
+        <p class="login-meta">© 2026 Fedy Fs. Gerana · Versi demo</p>
+      </div>
+    </main>`;
+    document.querySelectorAll("[data-email]").forEach((btn) =>
+      btn.addEventListener("click", () => {
+        document.getElementById("email").value = btn.dataset.email;
+        document.getElementById("password").value = PASSWORD;
+        document.getElementById("password").focus();
+      }),
+    );
+    document.getElementById("login").addEventListener("submit", (e) => {
+      e.preventDefault();
+      const email = String(new FormData(e.target).get("email")).trim().toLowerCase();
+      const password = String(new FormData(e.target).get("password"));
+      const found = db.users.find((u) => u.email === email);
+      if (!email || !password) return renderLogin("Isi email dan password.");
+      if (!found || password !== PASSWORD) {
+        db.activity.unshift({ at: stamp(), user: email || "-", action: "Login gagal", target: "Email atau password salah", tone: "b-bad" });
+        save();
+        return renderLogin("Email atau password salah.");
+      }
+      me = found;
+      sessionStorage.setItem(SESSION, String(found.id));
+      page = "home";
+      log("Login", ROLE_LABEL[found.role], "b-ok");
+      save();
+      render();
+    });
+    document.getElementById("email").focus();
+  }
+
+  function shell(content) {
+    const pages = ROLE_PAGES[me.role];
+    const pending = approvalQueue("approver").length + approvalQueue("pic").length;
+    return `<header class="header"><div class="header-in">
+      <div class="brand">${ICON.mark}<div><b>Meeting Room</b><small>Booking</small></div></div>
+      <nav class="nav" aria-label="Menu utama">${pages.map((p) => `<button type="button" data-page="${p}" ${p === page ? 'aria-current="page"' : ""}>${PAGE_LABEL[p]}${p === "approvals" && pending ? `<span class="count">${pending}</span>` : ""}</button>`).join("")}</nav>
+      <div class="me">
+        <span class="avatar" style="background:${AVATAR[me.id % AVATAR.length]}">${initials(me.name)}</span>
+        <span class="me-text"><b>${esc(me.name)}</b><small>${ROLE_LABEL[me.role]}</small></span>
+        <button class="btn btn-plain btn-sm" type="button" data-action="logout" title="Keluar">${ICON.logout}<span class="sr-only">Keluar</span></button>
+      </div>
+    </div></header><main class="main">${content}</main>`;
+  }
+
+  function dayNav() {
+    return `<div class="toolbar">
+      <button class="btn btn-sm" type="button" data-day="-1" aria-label="Hari sebelumnya">‹</button>
+      <input class="input" style="height:30px;width:auto" type="date" id="day" value="${viewDate}" aria-label="Pilih tanggal">
+      <button class="btn btn-sm" type="button" data-day="1" aria-label="Hari berikutnya">›</button>
+      <button class="btn btn-sm" type="button" data-day="0">Hari ini</button>
+    </div>`;
+  }
+
+  function pageHome() {
+    const isToday = viewDate === today();
+    const nm = nowMin();
+    const cards = db.rooms.map((r) => {
+      const todays = db.bookings.filter((b) => b.roomId === r.id && b.date === today() && ACTIVE.includes(b.status));
+      const current = todays.find((b) => b.start <= nm && nm < b.end && b.status === "approved");
+      const next = todays.filter((b) => b.start > nm).sort((a, b) => a.start - b.start)[0];
+      const state = r.status !== "active" ? '<span class="badge b-warn">Perbaikan</span>' : current ? '<span class="badge b-bad">Dipakai</span>' : '<span class="badge b-ok">Kosong</span>';
+      const note = r.status !== "active" ? "Tidak bisa dipesan" : current ? `Dipakai s/d ${clock(current.end)} · ${esc(current.topic)}` : next ? `Berikutnya ${clock(next.start)} · ${esc(next.topic)}` : "Tidak ada jadwal lagi hari ini";
+      return `<div class="card room"><h3>${esc(r.name)}</h3><p class="sub">${esc(r.location)} · ${r.capacity} orang</p>${state}<p class="now">${note}</p></div>`;
+    }).join("");
+    const span = CLOSE - OPEN;
+    const hours = [];
+    for (let h = OPEN; h <= CLOSE; h += 60) hours.push(`<span>${pad(h / 60)}</span>`);
+    const rows = db.rooms.map((r) => {
+      const blocks = db.bookings.filter((b) => b.roomId === r.id && b.date === viewDate && (ACTIVE.includes(b.status) || statusOf(b) === "done")).map((b) => {
+        const st = statusOf(b);
+        return `<button type="button" class="block ${blockColor(st)}" style="left:${((b.start - OPEN) / span) * 100}%;width:${((b.end - b.start) / span) * 100}%" data-booking="${b.id}" title="${esc(b.topic)}"><b>${esc(b.topic)}</b><span>${clock(b.start)}–${clock(b.end)}</span></button>`;
+      }).join("");
+      const slots = r.status === "active" ? Array.from({ length: span / 30 }, (_, i) => `<button type="button" class="slot" style="left:${(i / (span / 30)) * 100}%" data-slot="${r.id}:${OPEN + i * 30}" aria-label="Booking ${esc(r.name)} pukul ${clock(OPEN + i * 30)}"></button>`).join("") : "";
+      const off = r.status !== "active" ? '<div class="tl-off">Perbaikan</div>' : "";
+      const now = isToday && nm > OPEN && nm < CLOSE ? `<div class="now-line" style="left:${((nm - OPEN) / span) * 100}%"></div>` : "";
+      return `<div class="tl-row"><div class="tl-name">${esc(r.name)}<small>${r.capacity} orang</small></div><div class="tl-track">${slots}${blocks}${off}${now}</div></div>`;
+    }).join("");
+    return `<div class="head"><div><h1>Beranda</h1><p>Status ruang saat ini dan jadwal pemakaian. Klik jam kosong di timeline untuk langsung booking.</p></div>
+      <button class="btn btn-primary" type="button" data-action="new-booking">${ICON.cal}Booking ruang</button></div>
+      <div class="rooms">${cards}</div>
+      <div class="card"><div class="head" style="padding:14px 16px 0;margin:0"><div><h2 style="font-size:16px;font-weight:600">Timeline</h2><p>${longDate(viewDate)}</p></div>${dayNav()}</div>
+      <div class="timeline"><div class="tl"><div class="tl-hours"><div></div><div>${hours.join("")}</div></div>${rows}
+      <div class="legend"><span class="badge b-info">Disetujui</span><span class="badge b-violet">Menunggu cek ruang</span><span class="badge b-warn">Draft</span><span class="badge b-gray">Selesai</span></div></div></div></div>`;
+  }
+
+  function pageBookings() {
+    const list = db.bookings.filter((b) => me.role === "admin" || b.requesterId === me.id).sort((a, b) => (b.date + toTime(b.start)).localeCompare(a.date + toTime(a.start)));
+    const rows = list.map((b) => {
+      const st = statusOf(b);
+      return `<tr><td><b style="font-weight:500">${esc(b.topic)}</b><div class="cell-sub">${esc(user(b.requesterId).name)} · ${esc(dept(b.departmentId).code)}</div></td>
+        <td>${esc(room(b.roomId)?.name || "-")}</td><td style="white-space:nowrap">${shortDate(b.date)}<div class="cell-sub">${clock(b.start)}–${clock(b.end)}</div></td>
+        <td>${badge(st)}</td><td><div class="actions"><button class="btn btn-sm" type="button" data-booking="${b.id}">Detail</button>
+        ${ACTIVE.includes(st) && (b.requesterId === me.id || me.role === "admin") ? `<button class="btn btn-sm" type="button" data-cancel="${b.id}">Batalkan</button>` : ""}</div></td></tr>`;
+    }).join("");
+    return `<div class="head"><div><h1>Booking ruang</h1><p>${me.role === "admin" ? "Semua booking." : "Booking yang Anda ajukan."} Draft menunggu persetujuan penyetuju, lalu dicek penanggung jawab ruang.</p></div>
+      <button class="btn btn-primary" type="button" data-action="new-booking">${ICON.cal}Booking ruang</button></div>
+      <div class="card table-wrap">${list.length ? `<table><thead><tr><th>Topik</th><th>Ruang</th><th>Jadwal</th><th>Status</th><th></th></tr></thead><tbody>${rows}</tbody></table>` : `<div class="empty"><b>Belum ada booking</b>Klik Booking ruang untuk mengajukan yang pertama.</div>`}</div>`;
+  }
+
+  function pageApprovals() {
+    const modes = me.role === "admin" ? ["approver", "pic"] : me.role === "approver" ? ["approver"] : ["pic"];
+    if (!modes.includes(approvalTab)) approvalTab = modes[0];
+    const queue = approvalQueue(approvalTab);
+    const tabs = modes.length > 1 ? `<div class="tabs" role="group" aria-label="Tahap persetujuan">${modes.map((m) => `<button type="button" data-tab="${m}" aria-pressed="${m === approvalTab}">${m === "approver" ? "Penyetuju" : "Penanggung jawab ruang"}${approvalQueue(m).length ? `<span class="count">${approvalQueue(m).length}</span>` : ""}</button>`).join("")}</div>` : "";
+    const rows = queue.map((b) => `<tr><td><b style="font-weight:500">${esc(b.topic)}</b><div class="cell-sub">${esc(user(b.requesterId).name)} · ${esc(dept(b.departmentId).code)} · ${b.participants} orang</div></td>
+      <td>${esc(room(b.roomId).name)}</td><td style="white-space:nowrap">${shortDate(b.date)}<div class="cell-sub">${clock(b.start)}–${clock(b.end)}</div></td>
+      <td><div class="actions"><button class="btn btn-sm" type="button" data-booking="${b.id}">Detail</button><button class="btn btn-sm" type="button" data-reject="${b.id}">Tolak</button><button class="btn btn-sm btn-success" type="button" data-approve="${b.id}">${approvalTab === "approver" ? "Setujui" : "Ruang siap"}</button></div></td></tr>`).join("");
+    return `<div class="head"><div><h1>Persetujuan</h1><p>${approvalTab === "approver" ? "Booking Draft dari departemen yang Anda setujui." : "Booking yang sudah disetujui penyetuju dan menunggu cek kesiapan ruang."}</p></div></div>
+      ${tabs}<div class="card table-wrap">${queue.length ? `<table><thead><tr><th>Topik</th><th>Ruang</th><th>Jadwal</th><th></th></tr></thead><tbody>${rows}</tbody></table>` : `<div class="empty"><b>Tidak ada antrean</b>Semua booking pada tahap ini sudah ditindaklanjuti.</div>`}</div>`;
+  }
+
+  function pageMonitoring() {
+    const day = db.bookings.filter((b) => b.date === viewDate);
+    const used = day.filter((b) => ["approved", "approved_dept"].includes(b.status));
+    const minutes = used.reduce((s, b) => s + b.end - b.start, 0);
+    const active = db.rooms.filter((r) => r.status === "active").length || 1;
+    const span = CLOSE - OPEN;
+    const rows = db.rooms.map((r) => {
+      const rb = used.filter((b) => b.roomId === r.id);
+      const m = rb.reduce((s, b) => s + b.end - b.start, 0);
+      const pct = Math.round((m / span) * 100);
+      return `<tr><td><b style="font-weight:500">${esc(r.name)}</b><div class="cell-sub">${esc(r.location)}</div></td><td>${rb.length}</td><td>${Math.floor(m / 60)} jam ${m % 60} mnt</td><td><div style="display:flex;align-items:center;gap:10px"><div class="bar"><i style="width:${pct}%"></i></div>${pct}%</div></td></tr>`;
+    }).join("");
+    return `<div class="head"><div><h1>Monitoring</h1><p>Pemakaian ruang pada ${longDate(viewDate)}.</p></div>${dayNav()}</div>
+      <div class="stats">
+        <div class="card stat"><small>Booking</small><b>${used.length}</b></div>
+        <div class="card stat"><small>Draft</small><b>${day.filter((b) => b.status === "draft").length}</b></div>
+        <div class="card stat"><small>Total pemakaian</small><b>${Math.floor(minutes / 60)} jam</b></div>
+        <div class="card stat"><small>Tingkat pemakaian</small><b>${Math.round((minutes / (span * active)) * 100)}%</b></div>
+      </div>
+      <div class="card table-wrap"><table><thead><tr><th>Ruang</th><th>Booking</th><th>Durasi</th><th>Pemakaian</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+  }
+
+  function pageRooms() {
+    const rows = db.rooms.map((r) => `<tr><td><b style="font-weight:500">${esc(r.name)}</b><div class="cell-sub">${r.capacity} orang</div></td><td>${esc(r.location)}</td><td>${esc(r.facilities || "-")}</td>
+      <td>${r.status === "active" ? '<span class="badge b-ok">Aktif</span>' : '<span class="badge b-warn">Perbaikan</span>'}</td>
+      <td><div class="actions"><button class="btn btn-sm" type="button" data-edit-room="${r.id}">Ubah</button><button class="btn btn-sm" type="button" data-delete-room="${r.id}">Hapus</button></div></td></tr>`).join("");
+    return `<div class="head"><div><h1>Ruangan</h1><p>Daftar ruang meeting. Ruang berstatus Perbaikan tidak bisa dipesan.</p></div>
+      <button class="btn btn-primary" type="button" data-action="new-room">${ICON.plus}Tambah ruangan</button></div>
+      <div class="card table-wrap"><table><thead><tr><th>Ruang</th><th>Lokasi</th><th>Fasilitas</th><th>Status</th><th></th></tr></thead><tbody>${rows}</tbody></table></div>`;
+  }
+
+  function pageActivity() {
+    const rows = db.activity.map((a) => `<tr><td style="white-space:nowrap">${esc(a.at)}</td><td>${esc(a.user)}</td><td><span class="badge ${a.tone}">${esc(a.action)}</span></td><td>${esc(a.target)}</td></tr>`).join("");
+    return `<div class="head"><div><h1>Riwayat aktivitas</h1><p>Catatan login, login gagal, booking, persetujuan, dan perubahan data. Coba login dengan password salah lalu lihat catatannya di sini.</p></div></div>
+      <div class="card table-wrap"><table><thead><tr><th>Waktu</th><th>Pengguna</th><th>Aksi</th><th>Data</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+  }
+
+  function render() {
+    closeLayer();
+    if (!me) return renderLogin();
+    if (!ROLE_PAGES[me.role].includes(page)) page = "home";
+    const content = { home: pageHome, bookings: pageBookings, approvals: pageApprovals, monitoring: pageMonitoring, rooms: pageRooms, activity: pageActivity }[page]();
+    document.getElementById("app").innerHTML = shell(content);
+    document.title = `${PAGE_LABEL[page]} — Meeting Room Booking (demo)`;
+  }
+
+  document.addEventListener("click", (e) => {
+    const t = e.target.closest("button, [data-action]");
+    if (!t || !document.getElementById("app").contains(t) && !t.closest(".demo-bar")) return;
+    const d = t.dataset;
+    if (d.action === "reset-demo") {
+      db = seed(); save(); me = null; sessionStorage.removeItem(SESSION); viewDate = nextWorkday(today()); toast("Data demo dikembalikan seperti semula."); return render();
+    }
+    if (!me) return;
+    if (d.page) { page = d.page; return render(); }
+    if (d.action === "logout") { log("Logout", me.name, "b-gray"); save(); me = null; sessionStorage.removeItem(SESSION); return render(); }
+    if (d.action === "new-booking") return bookingForm();
+    if (d.action === "new-room") return roomForm();
+    if (d.slot) { const [roomId, start] = d.slot.split(":").map(Number); return bookingForm({ roomId, start, end: Math.min(start + 60, CLOSE), date: viewDate }); }
+    if (d.booking) return bookingDetail(Number(d.booking));
+    if (d.cancel) return cancelBooking(Number(d.cancel));
+    if (d.approve) return decide(Number(d.approve), approvalTab, true);
+    if (d.reject) return decide(Number(d.reject), approvalTab, false);
+    if (d.tab) { approvalTab = d.tab; return render(); }
+    if (d.editRoom) return roomForm(Number(d.editRoom));
+    if (d.deleteRoom) return deleteRoom(Number(d.deleteRoom));
+    if (d.day !== undefined) { viewDate = d.day === "0" ? today() : addDays(viewDate, Number(d.day)); return render(); }
+  });
+  document.addEventListener("change", (e) => {
+    if (e.target.id === "day" && e.target.value) { viewDate = e.target.value; render(); }
+  });
+
+  const saved = Number(sessionStorage.getItem(SESSION));
+  me = db.users.find((u) => u.id === saved) || null;
+  render();
+})();
+</script>
+</body>
+</html>

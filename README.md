@@ -8,8 +8,11 @@ Aplikasi web untuk memesan ruang meeting dengan persetujuan bertingkat, pengecek
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-18-4169E1?logo=postgresql&logoColor=white)
 ![License](https://img.shields.io/badge/License-MIT-green)
 
+**[Coba demo interaktif](https://fedyfsgerana.github.io/meeting-room-booking/demo/)** — login, booking, dan persetujuan dengan data contoh, tanpa instalasi. Data demo tersimpan di browser.
+
 ## Daftar Isi
 
+- [Demo](#demo)
 - [Fitur](#fitur)
 - [Alur Booking](#alur-booking)
 - [Tech Stack](#tech-stack)
@@ -21,6 +24,19 @@ Aplikasi web untuk memesan ruang meeting dengan persetujuan bertingkat, pengecek
 - [Kontribusi](#kontribusi)
 - [Lisensi](#lisensi)
 - [Pembuat](#pembuat)
+
+## Demo
+
+Versi demo ada di [`demo/index.html`](demo/index.html): satu file HTML tanpa server dan tanpa database, yang meniru alur utama aplikasi dengan data contoh.
+
+| Akun | Email | Password |
+| --- | --- | --- |
+| Administrator | `admin@demo.test` | `demo1234` |
+| Pemesan | `pemesan@demo.test` | `demo1234` |
+| Penyetuju | `penyetuju@demo.test` | `demo1234` |
+| Penanggung Jawab Ruang | `pj@demo.test` | `demo1234` |
+
+Alur yang bisa dicoba: ajukan booking sebagai Pemesan, setujui sebagai Penyetuju, lalu tandai ruang siap sebagai Penanggung Jawab Ruang. Semua aktivitas, termasuk login gagal, terlihat di Riwayat aktivitas akun Administrator.
 
 ## Fitur
 
