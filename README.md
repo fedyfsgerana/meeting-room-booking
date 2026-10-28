@@ -27,7 +27,7 @@ Aplikasi web untuk memesan ruang meeting dengan persetujuan bertingkat, pengecek
 
 ## Demo
 
-Versi demo ada di [`demo/index.html`](demo/index.html): satu file HTML tanpa server dan tanpa database, yang meniru alur utama aplikasi dengan data contoh.
+Versi demo ada di [`demo/index.html`](demo/index.html): satu file HTML tanpa server dan tanpa database, dengan tampilan yang sama persis karena memakai CSS asli aplikasi. Setelah mengubah CSS di `src/frontend/styles`, perbarui demo dengan `pnpm demo:build`.
 
 | Akun | Email | Password |
 | --- | --- | --- |

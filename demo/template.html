@@ -1,0 +1,930 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Demo — Meeting Room Booking</title>
+<meta name="description" content="Demo interaktif Meeting Room Booking dengan data contoh. Semua data tersimpan di browser.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Crect width='40' height='40' rx='10' fill='%233E6AE1'/%3E%3Crect x='10' y='12' width='20' height='18' rx='3.5' fill='none' stroke='white' stroke-width='2.4'/%3E%3Cpath d='M10 17.5h20M15 9.5v4.5M25 9.5v4.5' stroke='white' stroke-width='2.4' stroke-linecap='round'/%3E%3Cpath d='M15.6 23.6l2.9 2.9 5.9-5.9' fill='none' stroke='white' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script>
+(() => {
+  try {
+    const t = localStorage.getItem("mrb-theme");
+    if (t === "light" || t === "dark") document.documentElement.dataset.theme = t;
+  } catch {}
+})();
+</script>
+<style>
+:root { --font-sans: "Hanken Grotesk"; }
+/* APP_CSS */
+.demo-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 4px 14px;
+  padding: 7px 16px;
+  background: var(--ink);
+  color: var(--page);
+  font-size: 12.5px;
+  line-height: 18px;
+}
+.demo-bar button,
+.demo-bar a {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.demo-accounts {
+  display: grid;
+  gap: 6px;
+  margin-top: 18px;
+  padding-top: 16px;
+  border-top: 1px solid var(--line);
+}
+.demo-accounts h2 {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink);
+  margin-bottom: 2px;
+}
+.demo-account {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+  text-align: left;
+}
+.demo-account:hover { border-color: var(--blue); }
+.demo-account b { display: block; font-weight: 500; color: var(--ink); }
+.demo-account small { color: var(--fog); font-size: 12px; }
+</style>
+</head>
+<body>
+<div class="demo-bar" role="note">
+  <span>Mode demo: data contoh tersimpan di browser Anda dan tidak dikirim ke server.</span>
+  <button type="button" data-action="reset-demo">Atur ulang data demo</button>
+  <a href="https://github.com/fedyfsgerana/meeting-room-booking">Kode sumber di GitHub</a>
+</div>
+<div id="app"></div>
+<div id="layer"></div>
+
+<script>
+(() => {
+  const STORE = "mrb-demo-v2";
+  const SESSION = "mrb-demo-session";
+  const PASSWORD = "demo1234";
+  const OPEN = 7 * 60;
+  const CLOSE = 18 * 60;
+  const ACTIVE = ["draft", "pic", "approved"];
+
+  const P = {
+    house: '<path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"/><path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>',
+    table: '<path d="M9 3H5a2 2 0 0 0-2 2v4m6-6h10a2 2 0 0 1 2 2v4M9 3v18m0 0h10a2 2 0 0 0 2-2V9M9 21H5a2 2 0 0 1-2-2V9m0 0h18"/>',
+    calendarPlus: '<path d="M16 19h6"/><path d="M16 2v4"/><path d="M19 16v6"/><path d="M21 12.598V6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h8.5"/><path d="M3 10h18"/><path d="M8 2v4"/>',
+    calendarCheck: '<path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/><path d="m9 16 2 2 4-4"/>',
+    calendarDays: '<path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/><path d="M8 14h.01"/><path d="M12 14h.01"/><path d="M16 14h.01"/><path d="M8 18h.01"/><path d="M12 18h.01"/><path d="M16 18h.01"/>',
+    clipboardCheck: '<rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="m9 14 2 2 4-4"/>',
+    monitor: '<rect width="20" height="14" x="2" y="3" rx="2"/><line x1="8" x2="16" y1="21" y2="21"/><line x1="12" x2="12" y1="17" y2="21"/>',
+    settings: '<path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/>',
+    chevronDown: '<path d="m6 9 6 6 6-6"/>',
+    chevronLeft: '<path d="m15 18-6-6 6-6"/>',
+    chevronRight: '<path d="m9 18 6-6-6-6"/>',
+    bell: '<path d="M10.268 21a2 2 0 0 0 3.464 0"/><path d="M3.262 15.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673C19.41 13.956 18 12.499 18 8A6 6 0 0 0 6 8c0 4.499-1.411 5.956-2.738 7.326"/>',
+    bellOff: '<path d="M10.268 21a2 2 0 0 0 3.464 0"/><path d="M17 17H4a1 1 0 0 1-.74-1.673C4.59 13.956 6 12.499 6 8a6 6 0 0 1 .258-1.742"/><path d="m2 2 20 20"/><path d="M8.668 3.01A6 6 0 0 1 18 8c0 2.687.77 4.653 1.707 6.05"/>',
+    checkCheck: '<path d="M18 6 7 17l-5-5"/><path d="m22 10-7.5 7.5L13 16"/>',
+    door: '<path d="M13 4h3a2 2 0 0 1 2 2v14"/><path d="M2 20h3"/><path d="M13 20h9"/><path d="M10 12v.01"/><path d="M13 4.562v16.157a1 1 0 0 1-1.242.97L5 20V5.562a2 2 0 0 1 1.515-1.94l4-1A2 2 0 0 1 13 4.561Z"/>',
+    building: '<path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/><path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"/><path d="M10 6h4"/><path d="M10 10h4"/><path d="M10 14h4"/><path d="M10 18h4"/>',
+    users: '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>',
+    shieldCheck: '<path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="m9 12 2 2 4-4"/>',
+    history: '<path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l4 2"/>',
+    search: '<circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>',
+    sort: '<path d="m21 16-4 4-4-4"/><path d="M17 20V4"/><path d="m3 8 4-4 4 4"/><path d="M7 4v16"/>',
+    arrowUp: '<path d="m5 12 7-7 7 7"/><path d="M12 19V5"/>',
+    arrowDown: '<path d="M12 5v14"/><path d="m19 12-7 7-7-7"/>',
+    arrowLeft: '<path d="m12 19-7-7 7-7"/><path d="M19 12H5"/>',
+    eye: '<path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"/><circle cx="12" cy="12" r="3"/>',
+    circleX: '<circle cx="12" cy="12" r="10"/><path d="m15 9-6 6"/><path d="m9 9 6 6"/>',
+    circleCheck: '<circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/>',
+    circleAlert: '<circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/>',
+    circleHelp: '<circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/>',
+    info: '<circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/>',
+    triangle: '<path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/>',
+    clock: '<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>',
+    gauge: '<path d="m12 14 4-4"/><path d="M3.34 19a10 10 0 1 1 17.32 0"/>',
+    x: '<path d="M18 6 6 18"/><path d="m6 6 12 12"/>',
+    check: '<path d="M20 6 9 17l-5-5"/>',
+    plus: '<path d="M5 12h14"/><path d="M12 5v14"/>',
+    pencil: '<path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/><path d="m15 5 4 4"/>',
+    trash: '<path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/>',
+    save: '<path d="M15.2 3a2 2 0 0 1 1.4.6l3.8 3.8a2 2 0 0 1 .6 1.4V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"/><path d="M17 21v-7a1 1 0 0 0-1-1H8a1 1 0 0 0-1 1v7"/><path d="M7 3v4a1 1 0 0 0 1 1h7"/>',
+    logIn: '<path d="m10 17 5-5-5-5"/><path d="M15 12H3"/><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/>',
+    logOut: '<path d="m16 17 5-5-5-5"/><path d="M21 12H9"/><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>',
+    briefcase: '<path d="M16 20V4a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/><rect width="20" height="14" x="2" y="6" rx="2"/>',
+    sun: '<circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/>',
+    moon: '<path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/>',
+    laptop: '<path d="M20 16V7a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v9m16 0H4m16 0 1.28 2.55a1 1 0 0 1-.9 1.45H3.62a1 1 0 0 1-.9-1.45L4 16"/>',
+    menu: '<line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/>',
+    atSign: '<circle cx="12" cy="12" r="4"/><path d="M16 8v5a3 3 0 0 0 6 0v-1a10 10 0 1 0-4 8"/>',
+    inbox: '<polyline points="22 12 16 12 14 15 10 15 8 12 2 12"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/>',
+    listChecks: '<path d="m3 17 2 2 4-4"/><path d="m3 7 2 2 4-4"/><path d="M13 6h8"/><path d="M13 12h8"/><path d="M13 18h8"/>',
+  };
+  const icon = (name, cls = "") => `<svg${cls ? ` class="${cls}"` : ""} viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${P[name]}</svg>`;
+
+  const BRAND_MARK = (animated) => `<svg class="brand-mark${animated ? " animate" : ""}" viewBox="0 0 40 40" aria-hidden="true"><rect class="bm-bg" width="40" height="40" rx="10" fill="#3E6AE1"/><rect class="bm-cal" x="10" y="12" width="20" height="18" rx="3.5" fill="none" stroke="#FFFFFF" stroke-width="2.4"/><path class="bm-top" d="M10 17.5h20M15 9.5v4.5M25 9.5v4.5" fill="none" stroke="#FFFFFF" stroke-width="2.4" stroke-linecap="round"/><path class="bm-check" d="M15.6 23.6l2.9 2.9 5.9-5.9" fill="none" stroke="#FFFFFF" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+
+  const ROLE = {
+    admin: { label: "Administrator", pages: ["home", "rooms", "departments", "users", "booking", "approvals", "monitoring", "activity"], modes: ["approver", "pic"], manage: true },
+    requester: { label: "Pemesan", pages: ["home", "booking", "monitoring"], modes: [], manage: false },
+    approver: { label: "Penyetuju", pages: ["home", "booking", "approvals", "monitoring"], modes: ["approver"], manage: false },
+    pic: { label: "Penanggung Jawab Ruang", pages: ["home", "booking", "approvals", "monitoring"], modes: ["pic"], manage: false },
+  };
+  const NAV = [
+    { page: "home", href: "#/", label: "Beranda", icon: "house" },
+    { key: "master", label: "Master", icon: "table", children: [
+      { page: "rooms", href: "#/master/ruangan", label: "Ruangan", icon: "door" },
+      { page: "departments", href: "#/master/departemen", label: "Departemen", icon: "building" },
+      { page: "users", href: "#/master/pengguna", label: "Pengguna", icon: "users" },
+    ] },
+    { page: "booking", href: "#/booking", label: "Booking Ruang", short: "Booking", icon: "calendarPlus" },
+    { page: "approvals", href: "#/persetujuan", label: "Persetujuan", icon: "clipboardCheck" },
+    { page: "monitoring", href: "#/monitoring", label: "Monitoring", icon: "monitor" },
+    { key: "pengaturan", label: "Pengaturan", icon: "settings", children: [
+      { page: "activity", href: "#/pengaturan/riwayat-aktivitas", label: "Riwayat aktivitas", icon: "history" },
+    ] },
+  ];
+  const STATUS = {
+    draft: ["Draft", "warn"],
+    pic: ["Menunggu PJ Ruang", "info"],
+    approved: ["Disetujui", "ok"],
+    done: ["Selesai", "gray"],
+    rejected: ["Ditolak", "bad"],
+    cancelled: ["Dibatalkan", "bad"],
+  };
+  const MODE = {
+    approver: { label: "Penyetuju", description: "Booking yang menunggu persetujuan penyetuju departemen. Draft batal otomatis bila tidak disetujui sampai batas waktunya." },
+    pic: { label: "Penanggung Jawab Ruang", description: "Booking yang sudah disetujui penyetuju dan menunggu cek kesiapan ruang serta perlengkapan." },
+  };
+  const AVATAR_TONES = ["tone-info", "tone-ok", "tone-warn", "tone-bad", "tone-violet", "tone-orange", "tone-teal", "tone-pink", "tone-indigo", "tone-cyan", "tone-lime", "tone-slate"];
+  const TELE_APPS = ["Google Meet", "Skype", "Zoom", "Cisco Webex", "Jitsi", "DingTalk Lite", "Microsoft Teams"];
+
+  const pad = (n) => String(n).padStart(2, "0");
+  const ymd = (d) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+  const today = () => ymd(new Date());
+  const addDays = (date, days) => { const d = new Date(`${date}T00:00:00`); d.setDate(d.getDate() + days); return ymd(d); };
+  const clock = (m) => `${pad(Math.floor(m / 60))}.${pad(m % 60)}`;
+  const toMin = (t) => { const [h, m] = String(t).split(":").map(Number); return h * 60 + m; };
+  const toTime = (m) => `${pad(Math.floor(m / 60))}:${pad(m % 60)}`;
+  const nowMin = () => { const d = new Date(); return d.getHours() * 60 + d.getMinutes(); };
+  const longDate = (date) => new Date(`${date}T00:00:00`).toLocaleDateString("id-ID", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
+  const shortDate = (date) => new Date(`${date}T00:00:00`).toLocaleDateString("id-ID", { weekday: "short", day: "numeric", month: "short", year: "numeric" });
+  const duration = (m) => (m % 60 ? (m >= 60 ? `${Math.floor(m / 60)} jam ${m % 60} menit` : `${m} menit`) : `${m / 60} jam`);
+  const stamp = () => new Date().toLocaleString("id-ID", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" });
+  const esc = (v) => String(v ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  const initials = (name) => { const p = name.trim().split(/\s+/); return `${p[0][0]}${p.length > 1 ? p[p.length - 1][0] : ""}`.toUpperCase(); };
+  const avatarTone = (name) => { let h = 7; for (const c of name) h = (h * 31 + c.charCodeAt(0)) >>> 0; return AVATAR_TONES[h % AVATAR_TONES.length]; };
+  const nextWorkday = (date) => { let d = date; while (new Date(`${d}T00:00:00`).getDay() === 0) d = addDays(d, 1); return d; };
+
+  function seed() {
+    const t = nextWorkday(today());
+    const t1 = nextWorkday(addDays(t, 1));
+    const y = addDays(today(), -1);
+    const ev = (label, actor) => ({ label, actor, at: stamp() });
+    return {
+      departments: [
+        { id: 1, code: "IT", name: "Information Technology", active: true },
+        { id: 2, code: "HR", name: "Human Resources", active: true },
+        { id: 3, code: "FIN", name: "Finance", active: true },
+        { id: 4, code: "GA", name: "General Affairs", active: true },
+        { id: 5, code: "MKT", name: "Marketing", active: true },
+      ],
+      users: [
+        { id: 1, name: "Administrator", email: "admin@demo.test", role: "admin", departmentId: 1, job: "Administrator Sistem", approves: [] },
+        { id: 2, name: "Dewi Lestari", email: "pemesan@demo.test", role: "requester", departmentId: 2, job: "Staf Rekrutmen", approves: [] },
+        { id: 3, name: "Bima Santoso", email: "penyetuju@demo.test", role: "approver", departmentId: 2, job: "Manajer HR", approves: [2, 3, 5] },
+        { id: 4, name: "Rina Wijaya", email: "pj@demo.test", role: "pic", departmentId: 4, job: "Koordinator Fasilitas", approves: [] },
+      ],
+      rooms: [
+        { id: 1, name: "Ruang Merapi", location: "Lantai 2", capacity: 8, status: "active", departmentId: 4, picId: 4, facilities: "TV, Papan tulis" },
+        { id: 2, name: "Ruang Rinjani", location: "Lantai 3", capacity: 12, status: "active", departmentId: 4, picId: 4, facilities: "Proyektor, Video conference" },
+        { id: 3, name: "Ruang Bromo", location: "Lantai 1", capacity: 6, status: "active", departmentId: 2, picId: 4, facilities: "TV" },
+        { id: 4, name: "Aula Semeru", location: "Lantai 1", capacity: 40, status: "repair", departmentId: 4, picId: 4, facilities: "Sound system, Panggung" },
+      ],
+      bookings: [
+        { id: 1, roomId: 1, date: t, start: 540, end: 630, topic: "Interview kandidat UI/UX", participants: 4, requesterId: 2, departmentId: 2, approverId: 3, status: "approved", tele: "", notes: "", events: [ev("Diajukan", "Dewi Lestari"), ev("Disetujui penyetuju", "Bima Santoso"), ev("Dicek Penanggung Jawab Ruang", "Rina Wijaya")] },
+        { id: 2, roomId: 2, date: t, start: 780, end: 870, topic: "Review anggaran kuartal", participants: 9, requesterId: 2, departmentId: 3, approverId: 3, status: "pic", tele: "Zoom", notes: "", events: [ev("Diajukan", "Dewi Lestari"), ev("Disetujui penyetuju", "Bima Santoso")] },
+        { id: 3, roomId: 3, date: t, start: 900, end: 960, topic: "Onboarding karyawan baru", participants: 5, requesterId: 2, departmentId: 2, approverId: 3, status: "draft", tele: "", notes: "", events: [ev("Diajukan", "Dewi Lestari")] },
+        { id: 4, roomId: 2, date: t1, start: 600, end: 720, topic: "Workshop kampanye produk", participants: 10, requesterId: 2, departmentId: 5, approverId: 3, status: "draft", tele: "Google Meet", notes: "", events: [ev("Diajukan", "Dewi Lestari")] },
+        { id: 5, roomId: 1, date: y, start: 480, end: 540, topic: "Briefing mingguan", participants: 6, requesterId: 2, departmentId: 2, approverId: 3, status: "approved", tele: "", notes: "", events: [ev("Diajukan", "Dewi Lestari"), ev("Disetujui penyetuju", "Bima Santoso"), ev("Dicek Penanggung Jawab Ruang", "Rina Wijaya")] },
+      ],
+      notifications: [],
+      activity: [{ at: stamp(), user: "Sistem", action: "Data demo", tone: "info", module: "Sistem", target: "Data contoh dimuat", detail: "" }],
+      seq: { booking: 6, room: 5, note: 1 },
+    };
+  }
+
+  let db = load();
+  let me = null;
+  const ui = { menu: null, tables: {}, theme: readTheme() };
+
+  function load() {
+    try { const raw = localStorage.getItem(STORE); if (raw) return JSON.parse(raw); } catch {}
+    const data = seed();
+    persist(data);
+    return data;
+  }
+  function persist(data = db) { try { localStorage.setItem(STORE, JSON.stringify(data)); } catch {} }
+  function readTheme() { try { const t = localStorage.getItem("mrb-theme"); return t === "light" || t === "dark" ? t : "system"; } catch { return "system"; } }
+  function applyTheme(t) {
+    ui.theme = t;
+    if (t === "system") { delete document.documentElement.dataset.theme; try { localStorage.removeItem("mrb-theme"); } catch {} }
+    else { document.documentElement.dataset.theme = t; try { localStorage.setItem("mrb-theme", t); } catch {} }
+  }
+
+  const user = (id) => db.users.find((u) => u.id === id);
+  const room = (id) => db.rooms.find((r) => r.id === id);
+  const dept = (id) => db.departments.find((d) => d.id === id);
+  const can = (page) => me && ROLE[me.role].pages.includes(page);
+
+  function log(action, tone, module, target, detail = "") {
+    db.activity.unshift({ at: stamp(), user: me ? me.name : "Sistem", action, tone, module, target, detail });
+    db.activity = db.activity.slice(0, 300);
+  }
+  function notifyUsers(userIds, title, body, href) {
+    for (const userId of new Set(userIds)) db.notifications.unshift({ id: db.seq.note++, userId, title, body, href, read: false, at: stamp() });
+  }
+
+  function statusOf(b) {
+    if (b.status === "approved" && new Date(`${b.date}T${toTime(b.end)}:00`) < new Date()) return "done";
+    return b.status;
+  }
+  const badge = (label, tone) => `<span class="badge b-${tone}"><span class="badge-dot" aria-hidden="true"></span>${esc(label)}</span>`;
+  const statusBadge = (s) => badge(STATUS[s][0], STATUS[s][1]);
+
+  function approvalQueue(mode) {
+    if (!me) return [];
+    if (mode === "approver") return db.bookings.filter((b) => b.status === "draft" && (me.role === "admin" || (me.role === "approver" && me.approves.includes(b.departmentId))));
+    return db.bookings.filter((b) => b.status === "pic" && (me.role === "admin" || (me.role === "pic" && room(b.roomId)?.picId === me.id)));
+  }
+
+  function availability({ roomId, date, start, end, exclude }) {
+    const r = room(roomId);
+    if (!r) return ["wait", "Pilih ruang, tanggal, dan jam untuk melihat ketersediaan."];
+    if (r.status !== "active") return ["bad", `${r.name} sedang perbaikan dan tidak bisa dipesan.`];
+    if (!date || Number.isNaN(start) || Number.isNaN(end)) return ["wait", "Pilih ruang, tanggal, dan jam untuk melihat ketersediaan."];
+    if (new Date(`${date}T00:00:00`).getDay() === 0) return ["bad", "Hari Minggu bukan hari operasional."];
+    if (date < today() || (date === today() && start < nowMin())) return ["bad", "Waktu yang dipilih sudah lewat."];
+    if (!(start < end)) return ["bad", "Jam selesai harus setelah jam mulai."];
+    if (start < OPEN || end > CLOSE) return ["bad", `Di luar jam operasional ${clock(OPEN)}–${clock(CLOSE)}.`];
+    const clash = db.bookings.find((b) => b.id !== exclude && b.roomId === roomId && b.date === date && ACTIVE.includes(b.status) && b.start < end && start < b.end);
+    if (clash) return ["bad", `Ruang sudah dipakai ${clock(clash.start)}–${clock(clash.end)} untuk "${clash.topic}".`];
+    return ["ok", `${r.name} tersedia ${clock(start)}–${clock(end)}.`];
+  }
+
+  const layer = document.getElementById("layer");
+  const closeLayer = () => { layer.innerHTML = ""; };
+
+  function statusModal(message, tone = "success") {
+    const T = { success: ["Berhasil", "check", "success", "Oke"], error: ["Gagal", "circleAlert", "danger", "Tutup"], warning: ["Perhatian", "triangle", "warn", "Mengerti"], info: ["Informasi", "info", "primary", "Mengerti"] }[tone];
+    layer.innerHTML = `<div class="backdrop" data-close><div class="status-modal" role="alertdialog" aria-modal="true" aria-labelledby="st-title" tabindex="-1">
+      <button type="button" class="status-close" aria-label="Tutup" title="Tutup" data-close>${icon("x")}</button>
+      <span class="status-ic ${tone}">${icon(T[1])}</span><h2 id="st-title">${T[0]}</h2><p>${esc(message)}</p>
+      <div class="status-actions"><button type="button" class="btn btn-${T[2]}" data-close>${icon(tone === "error" ? "x" : "check")}${T[3]}</button></div>
+    </div></div>`;
+    layer.querySelector(".status-actions .btn").focus();
+  }
+
+  function confirmDialog({ title, description, label, iconName, tone, summary = [], reason = null, onConfirm }) {
+    const centerTone = { primary: "info", success: "success", danger: "error", warn: "warning" }[tone];
+    layer.innerHTML = `<div class="backdrop" data-close><div class="status-modal" role="dialog" aria-modal="true" aria-labelledby="cf-title" tabindex="-1">
+      <button type="button" class="status-close" aria-label="Tutup" title="Tutup" data-close>${icon("x")}</button>
+      <span class="status-ic ${centerTone}">${icon(iconName)}</span><h2 id="cf-title">${esc(title)}</h2><p>${esc(description)}</p>
+      ${summary.length ? `<dl class="confirm-summary">${summary.map(([k, v]) => `<div><dt>${esc(k)}</dt><dd>${esc(v)}</dd></div>`).join("")}</dl>` : ""}
+      ${reason ? `<div class="confirm-body"><div class="field"><label for="cf-reason">${esc(reason)} <span class="req">*</span></label><textarea class="textarea" id="cf-reason" rows="2" maxlength="300" placeholder="Masukkan alasan"></textarea><div class="hint">Minimal 3 karakter.</div></div><p class="confirm-note">${icon("info")}Alasan tersimpan di Riwayat aktivitas.</p></div>` : ""}
+      <div class="status-actions"><button type="button" class="btn btn-secondary" data-close>${icon("arrowLeft")}Kembali</button><button type="button" class="btn btn-${tone}" data-confirm${reason ? " disabled" : ""}>${icon(iconName)}${esc(label)}</button></div>
+    </div></div>`;
+    const ok = layer.querySelector("[data-confirm]");
+    const text = layer.querySelector("#cf-reason");
+    if (text) { text.addEventListener("input", () => { ok.disabled = text.value.trim().length < 3; }); text.focus(); }
+    else layer.querySelector(".status-modal").focus();
+    ok.addEventListener("click", () => {
+      const message = onConfirm(text ? text.value.trim() : null);
+      persist();
+      render();
+      if (message) statusModal(message, "success");
+    });
+  }
+
+  function cancelBooking(id) {
+    const b = db.bookings.find((x) => x.id === id);
+    confirmDialog({
+      title: "Batalkan booking?", description: `${b.topic}. Ruang kembali tersedia untuk orang lain.`, label: "Batalkan booking", iconName: "circleX", tone: "danger",
+      summary: [["Ruang", room(b.roomId).name], ["Jadwal", `${shortDate(b.date)} · ${clock(b.start)}–${clock(b.end)}`]], reason: "Alasan pembatalan",
+      onConfirm: (reason) => {
+        b.status = "cancelled"; b.reason = reason; b.events.push({ label: "Dibatalkan", actor: me.name, at: stamp(), note: reason });
+        log("Batalkan", "bad", "Booking", b.topic, reason);
+        return "Booking dibatalkan. Ruang kembali tersedia.";
+      },
+    });
+  }
+
+  function decide(id, mode, approve) {
+    const b = db.bookings.find((x) => x.id === id);
+    const summary = [["Ruang", room(b.roomId).name], ["Jadwal", `${shortDate(b.date)} · ${clock(b.start)}–${clock(b.end)}`], ["Pemesan", `${user(b.requesterId).name} · ${dept(b.departmentId).code}`]];
+    if (!approve) {
+      return confirmDialog({
+        title: "Tolak booking?", description: `${b.topic} oleh ${user(b.requesterId).name}. Ruang kembali tersedia.`, label: "Tolak", iconName: "x", tone: "danger", summary, reason: "Alasan penolakan",
+        onConfirm: (reason) => {
+          b.status = "rejected"; b.reason = reason; b.events.push({ label: "Ditolak", actor: me.name, at: stamp(), note: reason });
+          notifyUsers([b.requesterId], "Booking ditolak", `${b.topic}: ${reason}`, `#/booking/${b.id}`);
+          log("Tolak", "bad", "Persetujuan", b.topic, `${MODE[mode].label}: ${reason}`);
+          return "Booking ditolak. Ruang kembali tersedia.";
+        },
+      });
+    }
+    confirmDialog({
+      title: mode === "approver" ? "Setujui booking?" : "Ruang dan perlengkapan siap?",
+      description: mode === "approver" ? `${b.topic} oleh ${user(b.requesterId).name}. Booking diteruskan ke Penanggung Jawab Ruang untuk cek kesiapan ruang.` : `${room(b.roomId).name} untuk ${b.topic}. Booking menjadi Disetujui dan ruang dipakai sesuai jadwal.`,
+      label: mode === "approver" ? "Setujui" : "Ruang siap", iconName: mode === "approver" ? "circleCheck" : "clipboardCheck", tone: "success", summary,
+      onConfirm: () => {
+        if (mode === "approver") {
+          b.status = "pic"; b.events.push({ label: "Disetujui penyetuju", actor: me.name, at: stamp() });
+          notifyUsers([room(b.roomId).picId], "Cek kesiapan ruang", `${b.topic} · ${room(b.roomId).name}`, "#/persetujuan?tahap=pic");
+          log("Setujui", "ok", "Persetujuan", b.topic, "Penyetuju");
+          return "Booking disetujui dan diteruskan ke Penanggung Jawab Ruang.";
+        }
+        b.status = "approved"; b.events.push({ label: "Dicek Penanggung Jawab Ruang", actor: me.name, at: stamp() });
+        notifyUsers([b.requesterId], "Booking disetujui", `${b.topic} · ${room(b.roomId).name}`, `#/booking/${b.id}`);
+        log("Ruang siap", "ok", "Persetujuan", b.topic, "Penanggung Jawab Ruang");
+        return "Ruang siap. Booking disetujui.";
+      },
+    });
+  }
+
+  function deleteRoom(id) {
+    const r = room(id);
+    confirmDialog({
+      title: "Hapus ruangan?", description: `${r.name} dihapus dari daftar ruangan dan tidak bisa dipesan lagi.`, label: "Hapus ruangan", iconName: "trash", tone: "danger",
+      summary: [["Lokasi", r.location], ["Kapasitas", `${r.capacity} orang`]], reason: "Alasan penghapusan",
+      onConfirm: (reason) => {
+        db.rooms = db.rooms.filter((x) => x.id !== id);
+        log("Hapus", "bad", "Ruangan", r.name, reason);
+        return "Ruangan dihapus.";
+      },
+    });
+  }
+
+  function confirmLogout() {
+    confirmDialog({
+      title: "Keluar dari aplikasi?", description: "Sesi di perangkat ini diakhiri. Anda perlu masuk lagi untuk memakai aplikasi.", label: "Keluar", iconName: "logOut", tone: "danger",
+      onConfirm: () => { log("Logout", "gray", "Login dan sesi", me.name); me = null; sessionStorage.removeItem(SESSION); location.hash = "#/"; return null; },
+    });
+  }
+
+  function table(id, { rows, columns, actions, searchText, placeholder, filters, unit, empty, extra = "" }) {
+    const st = (ui.tables[id] ??= { q: "", filter: filters ? filters[0].value : null, sort: null, page: 1, size: 10 });
+    const q = st.q.trim().toLowerCase();
+    const searched = q ? rows.filter((r) => searchText(r).toLowerCase().includes(q)) : rows;
+    const active = filters?.find((f) => f.value === st.filter);
+    const filtered = active ? searched.filter(active.test) : searched;
+    const col = st.sort && columns.find((c) => c.key === st.sort.key);
+    const sorted = col ? [...filtered].sort((a, b) => { const x = col.sort(a), y = col.sort(b); return (x < y ? -1 : x > y ? 1 : 0) * (st.sort.dir === "desc" ? -1 : 1); }) : filtered;
+    const pages = Math.max(1, Math.ceil(sorted.length / st.size));
+    st.page = Math.min(st.page, pages);
+    const pageRows = sorted.slice((st.page - 1) * st.size, st.page * st.size);
+    const start = sorted.length ? (st.page - 1) * st.size + 1 : 0;
+    const end = Math.min(sorted.length, st.page * st.size);
+    const seg = filters && filters.length > 1 ? `<div class="seg" role="group" aria-label="Filter">${filters.map((f) => `<button type="button" class="${f.value === st.filter ? "active" : ""}" aria-pressed="${f.value === st.filter}" data-t-filter="${id}:${f.value}">${esc(f.label)}<span class="n">${searched.filter(f.test).length}</span></button>`).join("")}</div>` : "";
+    const head = columns.map((c) => {
+      const on = st.sort?.key === c.key;
+      const ic = on ? (st.sort.dir === "asc" ? "arrowUp" : "arrowDown") : "sort";
+      return `<th class="${c.cls || ""}">${c.sort ? `<button type="button" class="sort${on ? " active" : ""}" data-t-sort="${id}:${c.key}">${esc(c.header)}${icon(ic)}</button>` : esc(c.header)}</th>`;
+    }).join("");
+    const body = pageRows.map((r, i) => `<tr><td class="num-col">${start + i}</td>${columns.map((c) => `<td class="${c.cls || ""}" data-label="${esc(c.header)}">${c.render(r)}</td>`).join("")}${actions ? `<td class="ta-r"><div class="row-acts">${actions(r)}</div></td>` : ""}</tr>`).join("");
+    const nums = Array.from({ length: pages }, (_, i) => i + 1).map((n) => `<button type="button" data-t-page="${id}:${n}" ${n === st.page ? 'aria-current="page"' : ""} aria-label="Halaman ${n}">${n}</button>`).join("");
+    return `<section class="card table-card">
+      <div class="toolbar"><div class="search"><div class="input-ic">${icon("search")}<input class="input" type="search" value="${esc(st.q)}" placeholder="${esc(placeholder)}" aria-label="${esc(placeholder)}" data-t-search="${id}"></div></div>
+      ${seg || extra ? `<div class="toolbar-r">${extra}${seg}</div>` : ""}</div>
+      ${pageRows.length ? `<div class="table-wrap"><table class="dt"><thead><tr><th class="num-col">No</th>${head}${actions ? '<th class="ta-r">Aksi</th>' : ""}</tr></thead><tbody>${body}</tbody></table></div>`
+        : `<div class="empty">${icon(empty.icon)}<h3>${rows.length ? `${unit[0].toUpperCase()}${unit.slice(1)} tidak ditemukan` : esc(empty.title)}</h3><p>${rows.length ? "Coba kata kunci atau filter lain." : esc(empty.description)}</p></div>`}
+      <div class="pager"><span class="pg-info">${sorted.length ? `Menampilkan <b>${start}–${end}</b> dari <b>${sorted.length}</b> ${esc(unit)}` : "Tidak ada data"}</span>
+      <div class="pager-r"><span class="pg-size"><span>Tampilkan</span><select class="select" data-t-size="${id}" aria-label="Jumlah baris per halaman">${[10, 25, 50].map((n) => `<option ${n === st.size ? "selected" : ""}>${n}</option>`).join("")}</select></span>
+      <nav class="pages" aria-label="Halaman"><button type="button" class="pg-nav" data-t-page="${id}:${st.page - 1}" ${st.page <= 1 ? "disabled" : ""} aria-label="Halaman sebelumnya">${icon("chevronLeft")}</button>${nums}<button type="button" class="pg-nav" data-t-page="${id}:${st.page + 1}" ${st.page >= pages ? "disabled" : ""} aria-label="Halaman berikutnya">${icon("chevronRight")}</button></nav></div></div>
+    </section>`;
+  }
+
+  const pageHead = (title, description, actions = "") => `<div class="page-head"><div><h1>${esc(title)}</h1>${description ? `<p>${esc(description)}</p>` : ""}</div>${actions}</div>`;
+  const act = (iconName, label, attr, tone = "") => `<button type="button" class="act${tone ? ` ${tone}` : ""}" aria-label="${esc(label)}" title="${esc(label)}" ${attr}>${icon(iconName)}</button>`;
+  const actLink = (iconName, label, href, tone = "") => `<a class="act${tone ? ` ${tone}` : ""}" href="${href}" aria-label="${esc(label)}" title="${esc(label)}">${icon(iconName)}</a>`;
+  const cell = (main, sub) => `<div class="cell-main">${main}</div>${sub ? `<div class="cell-sub">${sub}</div>` : ""}`;
+
+  function dayNav(date, base) {
+    return `<div class="day-nav">
+      <button type="button" class="btn btn-secondary btn-sm" data-go="${base}" ${date === today() ? "disabled" : ""}>${icon("calendarDays")}Hari ini</button>
+      <button type="button" class="act" aria-label="Hari sebelumnya" title="Hari sebelumnya" data-go="${base}?tanggal=${addDays(date, -1)}">${icon("chevronLeft")}</button>
+      <input class="input" type="date" value="${date}" aria-label="Pilih tanggal" data-date-base="${base}">
+      <button type="button" class="act" aria-label="Hari berikutnya" title="Hari berikutnya" data-go="${base}?tanggal=${addDays(date, 1)}">${icon("chevronRight")}</button>
+    </div>`;
+  }
+
+  function viewHome(params) {
+    const date = /^\d{4}-\d{2}-\d{2}$/.test(params.get("tanggal") || "") ? params.get("tanggal") : today();
+    const isToday = date === today();
+    const nm = nowMin();
+    const canBook = date >= today();
+    const closed = new Date(`${date}T00:00:00`).getDay() === 0 ? "Hari Minggu bukan hari operasional" : null;
+    const list = db.bookings.filter((b) => b.date === date && (ACTIVE.includes(b.status) || statusOf(b) === "done")).sort((a, b) => a.start - b.start);
+    const activeRooms = db.rooms.filter((r) => r.status === "active");
+    const busy = isToday ? activeRooms.filter((r) => list.some((b) => b.roomId === r.id && statusOf(b) !== "done" && b.start <= nm && b.end > nm)).length : 0;
+    const cards = db.rooms.map((r) => {
+      const rl = list.filter((b) => b.roomId === r.id && statusOf(b) !== "done");
+      const current = isToday ? rl.find((b) => b.start <= nm && b.end > nm) : null;
+      const next = rl.find((b) => b.start >= (isToday ? nm : 0));
+      const unavailable = r.status !== "active";
+      const shut = (isToday && nm >= CLOSE) || closed;
+      let state = rl.length ? `${rl.length} booking` : "Kosong";
+      let tone = rl.length ? "busy" : "ok";
+      let note = rl.length ? `Pertama ${clock(rl[0].start)}, ${rl[0].topic}` : "Belum ada booking";
+      if (unavailable) { state = "Perbaikan"; tone = "warn"; note = "Sementara tidak bisa dipesan"; }
+      else if (current) { state = `Dipakai s/d ${clock(current.end)}`; tone = "busy"; note = current.topic; }
+      else if (isToday) { state = shut ? "Tutup" : next ? `Kosong s/d ${clock(next.start)}` : "Kosong"; tone = shut ? "muted" : "ok"; note = next ? `Berikutnya ${next.topic}` : "Tidak ada booking lagi hari ini"; }
+      return `<div class="now-card tone-${tone}"><div class="stat-head"><span class="stat-label">${esc(r.name)}</span><span class="n-cap">${r.capacity} orang</span></div>
+        <div class="n-state t-${tone}"><i aria-hidden="true"></i>${esc(state)}</div><div class="n-sub">${esc(note)}</div>
+        ${canBook && !unavailable && !shut && can("booking") ? `<a class="n-cta" href="#/booking/baru?ruang=${r.id}${isToday ? "" : `&tanggal=${date}`}">${icon("calendarPlus")}Booking ruang ini</a>` : ""}</div>`;
+    }).join("");
+    const span = CLOSE - OPEN;
+    const pct = (m) => ((m - OPEN) / span) * 100;
+    const hours = []; for (let m = OPEN; m <= CLOSE; m += 60) hours.push(m);
+    const nowPos = isToday && nm > OPEN && nm < CLOSE ? nm : null;
+    const rows = db.rooms.map((r) => {
+      const blocked = r.status !== "active" || closed;
+      const rl = list.filter((b) => b.roomId === r.id);
+      const free = !blocked && canBook && can("booking") ? hours.slice(0, -1).map((m) => {
+        const e = Math.min(m + 60, CLOSE);
+        if ((isToday && e <= nm) || rl.some((b) => b.start < e && b.end > m)) return "";
+        return `<a class="tl-free" style="left:${pct(m)}%;width:${pct(e) - pct(m)}%" href="#/booking/baru?ruang=${r.id}&tanggal=${date}&mulai=${toTime(m)}" aria-label="Booking ${esc(r.name)} jam ${clock(m)}"><span>+ ${clock(m)}</span></a>`;
+      }).join("") : "";
+      const slots = rl.map((b) => {
+        const s = statusOf(b);
+        const style = `left:${pct(b.start)}%;width:${pct(b.end) - pct(b.start)}%`;
+        const inner = `<strong>${esc(b.topic)}</strong><small>${clock(b.start)}–${clock(b.end)}, ${esc(dept(b.departmentId).code)}</small>`;
+        const viewable = ROLE[me.role].manage || ROLE[me.role].modes.length || b.requesterId === me.id;
+        return viewable ? `<a class="slot s-${s}" style="${style}" href="#/booking/${b.id}" title="${esc(b.topic)}">${inner}</a>` : `<div class="slot s-${s}" style="${style}" title="${esc(b.topic)}">${inner}</div>`;
+      }).join("");
+      return `<div class="tl-row"><div class="tl-room"><b>${esc(r.name)}</b><span>${r.capacity} orang</span></div>
+        <div class="tl-track${blocked ? " blocked" : ""}">${hours.map((m) => `<i class="tl-grid" style="left:${pct(m)}%"></i>`).join("")}${free}
+        ${blocked ? `<span class="tl-blocked">${closed ? "Tutup" : "Sedang perbaikan"}</span>` : ""}${slots}${nowPos !== null ? `<i class="now-line" style="left:${pct(nowPos)}%"></i>` : ""}</div></div>`;
+    }).join("");
+    return `${pageHead("Beranda", isToday ? `${activeRooms.length - busy} dari ${activeRooms.length} ruang sedang kosong. Klik bagian kosong di jadwal untuk langsung booking.` : "Jadwal pemakaian ruang pada tanggal yang dipilih.")}
+      <div class="now-strip">${cards}</div>
+      <section class="card timeline-card"><div class="card-head"><div><h2>${longDate(date)}</h2><p>${closed ?? `${list.length} booking tercatat`}</p></div>${dayNav(date, "#/")}</div>
+      <div class="tl-scroll"><div class="tl"><div class="tl-head"><span></span><div class="tl-hours">${hours.map((m) => `<span style="left:${pct(m)}%">${clock(m)}</span>`).join("")}${nowPos !== null ? `<span class="now-tag" style="left:${pct(nowPos)}%">${clock(nowPos)}</span>` : ""}</div></div>${rows}</div></div>
+      <div class="legend"><span><i class="l-approved"></i>Disetujui</span><span><i class="l-pic"></i>Menunggu PJ Ruang</span><span><i class="l-draft"></i>Draft</span><span><i class="l-done"></i>Selesai</span>${canBook ? '<span class="legend-hint">Klik bagian kosong untuk langsung booking.</span>' : ""}</div></section>`;
+  }
+
+  function viewBookings() {
+    const manage = ROLE[me.role].manage;
+    const rows = db.bookings.filter((b) => manage || b.requesterId === me.id);
+    const isActive = (b) => ACTIVE.includes(statusOf(b));
+    const columns = [
+      { key: "when", header: "Tanggal dan waktu", render: (b) => `<div class="cell-main nowrap">${shortDate(b.date)}</div><div class="cell-sub nowrap">${clock(b.start)}–${clock(b.end)}, ${duration(b.end - b.start)}</div>`, sort: (b) => `${b.date}${pad(b.start)}` },
+      { key: "room", header: "Ruang", render: (b) => cell(esc(room(b.roomId)?.name ?? "-"), `${room(b.roomId)?.capacity ?? "-"} orang`), sort: (b) => room(b.roomId)?.name ?? "" },
+      { key: "topic", header: "Topik", render: (b) => cell(esc(b.topic), `${b.participants} orang, ${b.tele ? esc(b.tele) : "tanpa teleconference"}`), sort: (b) => b.topic },
+      ...(manage ? [{ key: "req", header: "Pemesan", render: (b) => cell(esc(user(b.requesterId).name), esc(dept(b.departmentId).name)), sort: (b) => user(b.requesterId).name }] : []),
+      { key: "status", header: "Status", render: (b) => statusBadge(statusOf(b)), sort: (b) => Object.keys(STATUS).indexOf(statusOf(b)) },
+    ];
+    return pageHead("Booking Ruang", manage ? "Semua booking ruang meeting." : "Booking yang Anda ajukan. Draft menunggu persetujuan penyetuju, lalu dicek Penanggung Jawab Ruang.", `<a class="btn btn-primary" href="#/booking/baru">${icon("calendarPlus")}Booking ruang</a>`)
+      + table("bookings", {
+        rows, columns, unit: "booking", placeholder: "Cari topik atau ruang",
+        searchText: (b) => [b.topic, room(b.roomId)?.name, user(b.requesterId).name].join(" "),
+        filters: [{ value: "upcoming", label: "Akan datang", test: isActive }, { value: "history", label: "Riwayat", test: (b) => !isActive(b) }, { value: "all", label: "Semua", test: () => true }],
+        actions: (b) => actLink("eye", `Detail ${b.topic}`, `#/booking/${b.id}`) + (isActive(b) && (b.requesterId === me.id || manage) ? act("circleX", "Batalkan", `data-cancel="${b.id}"`, "bad") : ""),
+        empty: { icon: "calendarPlus", title: "Belum ada booking", description: "Klik Booking ruang untuk mengajukan yang pertama." },
+      });
+  }
+
+  function viewBookingForm(params) {
+    const myDepts = me.role === "admin" ? db.departments : db.departments.filter((d) => d.id === me.departmentId || me.approves.includes(d.id));
+    const roomId = Number(params.get("ruang")) || db.rooms.find((r) => r.status === "active")?.id;
+    const date = params.get("tanggal") || today();
+    const firstFree = () => {
+      const from = date === today() ? Math.max(OPEN, Math.ceil(nowMin() / 30) * 30) : OPEN;
+      for (let m = from; m + 60 <= CLOSE; m += 30) if (availability({ roomId, date, start: m, end: m + 60 })[0] === "ok") return m;
+      return Math.min(from, CLOSE - 60);
+    };
+    const s = params.get("mulai") ? toMin(params.get("mulai")) : firstFree();
+    const defaultDept = (myDepts.find((d) => db.users.some((u) => u.role === "approver" && u.approves.includes(d.id))) || myDepts[0])?.id;
+    const opt = (list, sel, fn, placeholder) => `${placeholder ? `<option value="">${placeholder}</option>` : ""}${list.map((x) => `<option value="${x.id}" ${x.id === sel ? "selected" : ""}>${esc(fn(x))}</option>`).join("")}`;
+    return pageHead("Booking ruang", "Isi ruang, waktu, dan detail meeting.", `<a class="btn btn-secondary" href="#/booking">${icon("arrowLeft")}Kembali</a>`)
+      + `<div id="bf-alert"></div><div id="bf-avail"></div><section class="card"><form id="booking-form" novalidate>
+      <div class="card-head"><div><h2>Data booking</h2><p>Booking disimpan sebagai Draft dan menunggu persetujuan penyetuju departemen.</p></div></div>
+      <div class="card-body"><h3 class="form-section">Ruang dan waktu</h3><div class="grid2">
+        <div class="field"><label for="bf-room">Ruang meeting <span class="req">*</span></label><select class="select" id="bf-room" name="roomId">${opt(db.rooms, roomId, (r) => `${r.name} (${r.capacity} orang)`, "Pilih ruang")}</select></div>
+        <div class="field"><label for="bf-date">Tanggal <span class="req">*</span></label><input class="input" type="date" id="bf-date" name="date" min="${today()}" value="${date}"></div>
+        <div class="field"><label for="bf-start">Jam mulai <span class="req">*</span></label><input class="input" type="time" id="bf-start" name="start" value="${toTime(s)}"><div class="hint">Jam operasional ${clock(OPEN)}–${clock(CLOSE)}</div></div>
+        <div class="field"><label for="bf-end">Jam selesai <span class="req">*</span></label><input class="input" type="time" id="bf-end" name="end" value="${toTime(Math.min(s + 60, CLOSE))}"><div class="hint" id="bf-duration"></div></div>
+      </div><h3 class="form-section">Detail meeting</h3>
+        <div class="field" id="f-topic"><label for="bf-topic">Topik pembahasan <span class="req">*</span></label><input class="input" id="bf-topic" name="topic" maxlength="120" placeholder="Masukkan topik pembahasan"><div class="hint">Contoh: Evaluasi vendor kuartal ketiga.</div></div>
+        <div class="grid2">
+          <div class="field"><label for="bf-dept">Departemen <span class="req">*</span></label><select class="select" id="bf-dept" name="departmentId">${opt(myDepts, myDepts.some((d) => d.id === me.departmentId && db.users.some((u) => u.role === "approver" && u.approves.includes(d.id))) ? me.departmentId : defaultDept, (d) => `${d.name} (${d.code})`)}</select></div>
+          <div class="field"><label for="bf-approver">Penyetuju yang menyetujui <span class="req">*</span></label><select class="select" id="bf-approver" name="approverId"></select><div class="hint" id="bf-approver-hint"></div></div>
+          <div class="field" id="f-participants"><label for="bf-participants">Jumlah peserta</label><input class="input" type="number" id="bf-participants" name="participants" min="1" max="500" placeholder="Masukkan jumlah peserta"><div class="hint" id="bf-capacity"></div></div>
+          <div class="field"><span class="label">Teleconference</span><div class="seg" role="group" aria-label="Teleconference"><button type="button" class="active" aria-pressed="true" data-tele="no">Tidak</button><button type="button" aria-pressed="false" data-tele="yes">Ya</button></div></div>
+        </div>
+        <div class="grid2" id="bf-tele-box" hidden><div class="field"><label for="bf-tele">Aplikasi teleconference <span class="req">*</span></label><select class="select" id="bf-tele" name="tele"><option value="">Pilih aplikasi</option>${TELE_APPS.map((a) => `<option>${a}</option>`).join("")}</select></div></div>
+        <div class="field"><label for="bf-notes">Catatan</label><textarea class="textarea" id="bf-notes" name="notes" maxlength="500" placeholder="Masukkan catatan"></textarea><div class="hint">Opsional. Contoh: kebutuhan konsumsi atau perlengkapan tambahan.</div></div>
+      </div><div class="card-foot"><button type="submit" class="btn btn-primary">${icon("calendarCheck")}Ajukan booking</button></div></form></section>`;
+  }
+
+  function mountBookingForm() {
+    const form = document.getElementById("booking-form");
+    if (!form) return;
+    const $ = (id) => document.getElementById(id);
+    let tele = "no";
+    const read = () => ({ roomId: Number($("bf-room").value), date: $("bf-date").value, start: $("bf-start").value ? toMin($("bf-start").value) : NaN, end: $("bf-end").value ? toMin($("bf-end").value) : NaN, topic: $("bf-topic").value.trim(), departmentId: Number($("bf-dept").value), approverId: Number($("bf-approver").value), participants: Number($("bf-participants").value) || 0, tele: tele === "yes" ? $("bf-tele").value : "", notes: $("bf-notes").value.trim() });
+    const alertBox = (el, message, tone) => { el.innerHTML = message ? `<div class="form-alert ${tone}" role="${tone === "error" ? "alert" : "status"}">${icon({ error: "circleAlert", success: "circleCheck", wait: "clock", info: "info" }[tone])}<span>${esc(message)}</span></div>` : ""; };
+    const fillApprovers = () => {
+      const list = db.users.filter((u) => u.role === "approver" && u.approves.includes(Number($("bf-dept").value)));
+      $("bf-approver").innerHTML = list.map((u) => `<option value="${u.id}">${esc(u.name)} (${esc(u.job)})</option>`).join("") || '<option value="">Belum ada penyetuju</option>';
+      $("bf-approver-hint").textContent = list.length ? "" : "Departemen ini belum punya penyetuju. Hubungi administrator.";
+    };
+    const check = () => {
+      const v = read();
+      const [state, message] = availability(v);
+      alertBox($("bf-avail"), message, { ok: "success", bad: "error", wait: "wait" }[state]);
+      const r = room(v.roomId);
+      $("bf-capacity").textContent = r ? `Kapasitas ${r.name} ${r.capacity} orang` : "";
+      $("bf-duration").textContent = v.end > v.start ? `Durasi ${duration(v.end - v.start)}` : "";
+      return state === "ok";
+    };
+    const setError = (fieldId, message) => {
+      const f = $(fieldId); f.classList.add("invalid");
+      f.querySelector(".hint, .err")?.remove();
+      f.insertAdjacentHTML("beforeend", `<div class="err" role="alert">${esc(message)}</div>`);
+    };
+    fillApprovers(); check();
+    $("bf-dept").addEventListener("change", fillApprovers);
+    form.addEventListener("input", check);
+    form.addEventListener("change", check);
+    form.querySelectorAll("[data-tele]").forEach((b) => b.addEventListener("click", () => {
+      tele = b.dataset.tele;
+      form.querySelectorAll("[data-tele]").forEach((x) => { x.classList.toggle("active", x === b); x.setAttribute("aria-pressed", String(x === b)); });
+      $("bf-tele-box").hidden = tele !== "yes";
+    }));
+    form.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const v = read();
+      let bad = false;
+      if (v.topic.length < 3) { setError("f-topic", "Isi topik minimal 3 karakter."); bad = true; }
+      const r = room(v.roomId);
+      if (r && v.participants > r.capacity) { setError("f-participants", `Peserta melebihi kapasitas ${r.capacity} orang.`); bad = true; }
+      if (tele === "yes" && !v.tele) { bad = true; alertBox($("bf-alert"), "Pilih aplikasi teleconference.", "error"); }
+      if (!v.approverId) bad = true;
+      if (!check() || bad) { if (!$("bf-alert").innerHTML) alertBox($("bf-alert"), "Periksa kembali isian yang ditandai merah.", "error"); window.scrollTo({ top: 0 }); return; }
+      const isPic = r.picId === me.id;
+      const b = { id: db.seq.booking++, ...v, participants: v.participants || 1, requesterId: me.id, status: isPic ? "approved" : "draft", events: [{ label: "Diajukan", actor: me.name, at: stamp() }] };
+      if (isPic) b.events.push({ label: "Dicek Penanggung Jawab Ruang", actor: me.name, at: stamp(), note: "Dipesan langsung oleh Penanggung Jawab Ruang ini." });
+      db.bookings.push(b);
+      if (!isPic) notifyUsers([v.approverId], "Booking menunggu persetujuan", `${v.topic} · ${r.name}`, "#/persetujuan?tahap=approver");
+      log("Ajukan", "info", "Booking", `${v.topic} · ${r.name}`);
+      persist();
+      location.hash = `#/booking/${b.id}`;
+      setTimeout(() => statusModal(isPic ? "Booking langsung disetujui karena Anda Penanggung Jawab Ruang ini." : "Booking diajukan dan menunggu persetujuan penyetuju.", "success"));
+    });
+  }
+
+  function viewBookingDetail(id) {
+    const b = db.bookings.find((x) => x.id === id);
+    if (!b) return pageHead("Booking tidak ditemukan", "Booking ini sudah tidak ada.", `<a class="btn btn-secondary" href="#/booking">${icon("arrowLeft")}Kembali</a>`);
+    const s = statusOf(b);
+    const r = room(b.roomId);
+    const rows = [["Ruang", r ? `${r.name} · ${r.location}` : "-"], ["Tanggal", longDate(b.date)], ["Waktu", `${clock(b.start)}–${clock(b.end)} (${duration(b.end - b.start)})`], ["Pemesan", `${user(b.requesterId).name}, ${dept(b.departmentId).name}`], ["Penyetuju", b.approverId ? user(b.approverId).name : "-"], ["Peserta", `${b.participants} orang`], ["Teleconference", b.tele || "Tidak"]];
+    if (b.notes) rows.push(["Catatan", b.notes]);
+    if (b.reason) rows.push(["Alasan", b.reason]);
+    const canCancel = ACTIVE.includes(s) && (b.requesterId === me.id || ROLE[me.role].manage);
+    return pageHead("Detail booking", `Booking #${b.id}`, `<div class="btn-row"><a class="btn btn-secondary" href="#/booking">${icon("arrowLeft")}Kembali</a>${canCancel ? `<button type="button" class="btn btn-danger" data-cancel="${b.id}">${icon("circleX")}Batalkan</button>` : ""}</div>`)
+      + `<div class="detail-grid"><section class="card"><div class="card-head"><div><h2>${esc(b.topic)}</h2></div>${statusBadge(s)}</div><div class="card-body"><dl class="info-list">${rows.map(([k, v]) => `<div><dt>${esc(k)}</dt><dd>${esc(v)}</dd></div>`).join("")}</dl></div></section>
+      <section class="card"><div class="card-head"><div><h2>Riwayat</h2><p>Setiap perubahan status booking ini.</p></div></div><div class="card-body"><ol class="timeline-list">${b.events.map((e) => `<li><span class="dot" aria-hidden="true"></span><div><div class="cell-main">${esc(e.label)}</div><div class="cell-sub">${esc(e.actor)}, ${esc(e.at)}</div>${e.note ? `<p class="ev-note">${esc(e.note)}</p>` : ""}</div></li>`).join("")}</ol></div></section></div>`;
+  }
+
+  function viewApprovals(params) {
+    const modes = ROLE[me.role].modes;
+    const mode = modes.includes(params.get("tahap")) ? params.get("tahap") : modes[0];
+    const rows = approvalQueue(mode);
+    const tabs = modes.length > 1 ? `<nav class="seg seg-tabs" aria-label="Tahap persetujuan">${modes.map((m) => `<a href="#/persetujuan?tahap=${m}" class="${m === mode ? "active" : ""}" ${m === mode ? 'aria-current="page"' : ""}>${MODE[m].label}<span class="n">${approvalQueue(m).length}</span></a>`).join("")}</nav>` : "";
+    const columns = [
+      { key: "when", header: "Tanggal dan waktu", render: (b) => `<div class="cell-main nowrap">${shortDate(b.date)}</div><div class="cell-sub nowrap">${clock(b.start)}–${clock(b.end)}</div>`, sort: (b) => `${b.date}${pad(b.start)}` },
+      { key: "room", header: "Ruang", render: (b) => cell(esc(room(b.roomId).name), `${room(b.roomId).capacity} orang`), sort: (b) => room(b.roomId).name },
+      { key: "topic", header: "Topik", render: (b) => cell(esc(b.topic), `${b.participants} orang`), sort: (b) => b.topic },
+      { key: "req", header: "Pemesan", render: (b) => cell(esc(user(b.requesterId).name), esc(dept(b.departmentId).name)), sort: (b) => user(b.requesterId).name },
+      { key: "status", header: "Status", render: (b) => statusBadge(b.status) },
+    ];
+    return pageHead("Persetujuan", MODE[mode].description) + table(`approvals-${mode}`, {
+      rows, columns, unit: "booking", placeholder: "Cari topik, ruang, atau pemesan", extra: tabs,
+      searchText: (b) => [b.topic, room(b.roomId).name, user(b.requesterId).name].join(" "),
+      actions: (b) => actLink("eye", `Detail ${b.topic}`, `#/booking/${b.id}`) + act("x", "Tolak", `data-reject="${b.id}:${mode}"`, "bad") + act(mode === "approver" ? "circleCheck" : "clipboardCheck", mode === "approver" ? "Setujui" : "Ruang siap", `data-approve="${b.id}:${mode}"`, "ok"),
+      empty: { icon: "inbox", title: "Tidak ada antrean", description: "Semua booking pada tahap ini sudah ditindaklanjuti." },
+    });
+  }
+
+  function viewMonitoring(params) {
+    const date = /^\d{4}-\d{2}-\d{2}$/.test(params.get("tanggal") || "") ? params.get("tanggal") : today();
+    const used = db.bookings.filter((b) => b.date === date && ["approved", "pic", "draft", "done"].includes(statusOf(b)));
+    const span = CLOSE - OPEN;
+    const data = db.rooms.map((r) => { const rb = used.filter((b) => b.roomId === r.id); const m = rb.reduce((s, b) => s + b.end - b.start, 0); return { ...r, count: rb.length, minutes: m, occupancy: Math.round((m / span) * 100) }; });
+    const total = data.reduce((s, r) => s + r.minutes, 0);
+    const activeRows = data.filter((r) => r.status === "active");
+    const avg = activeRows.length ? Math.round(activeRows.reduce((s, r) => s + r.occupancy, 0) / activeRows.length) : 0;
+    const busiest = [...data].sort((a, b) => b.minutes - a.minutes)[0];
+    const stat = (label, value, note, ic, tone) => `<div class="stat-card tone-${tone}"><div class="stat-head"><span class="stat-label">${label}</span><span class="stat-ic">${icon(ic)}</span></div><div class="stat-value">${esc(value)}</div><div class="stat-note">${esc(note)}</div></div>`;
+    const columns = [
+      { key: "room", header: "Ruang", render: (r) => cell(esc(r.name), `${r.capacity} orang`), sort: (r) => r.name },
+      { key: "dept", header: "Departemen", render: (r) => esc(dept(r.departmentId)?.code ?? "-") },
+      { key: "count", header: "Jumlah booking", render: (r) => `<span class="mono">${r.count} booking</span>`, sort: (r) => r.count, cls: "nowrap" },
+      { key: "minutes", header: "Total pemakaian", render: (r) => (r.minutes ? duration(r.minutes) : "-"), sort: (r) => r.minutes, cls: "nowrap" },
+      { key: "occ", header: "Tingkat pemakaian", render: (r) => `<div class="occ"><span class="occ-bar"><i style="width:${Math.min(100, r.occupancy)}%"></i></span><span class="mono">${r.occupancy}%</span></div>`, sort: (r) => r.occupancy },
+      { key: "status", header: "Status", render: (r) => (r.status === "active" ? badge("Aktif", "ok") : badge("Perbaikan", "warn")) },
+    ];
+    return pageHead("Monitoring", `Pemakaian ruang pada ${longDate(date)}.`)
+      + `<div class="stat-grid">${stat("Total booking", String(used.length), "Tidak termasuk yang batal atau ditolak", "calendarCheck", "blue")}${stat("Total pemakaian", total ? duration(total) : "0 jam", "Semua ruang", "clock", "green")}${stat("Rata-rata tingkat pemakaian", `${avg}%`, `Dari jam operasional ${clock(OPEN)}–${clock(CLOSE)}`, "gauge", "amber")}${stat("Ruang tersibuk", busiest && busiest.minutes ? busiest.name : "-", busiest && busiest.minutes ? duration(busiest.minutes) : `${activeRows.length} ruang aktif`, "door", "violet")}</div>`
+      + table("monitoring", { rows: data, columns, unit: "ruang", placeholder: "Cari ruang", searchText: (r) => r.name, extra: dayNav(date, "#/monitoring"), empty: { icon: "door", title: "Belum ada ruangan", description: "Tambahkan ruangan di Master." } });
+  }
+
+  function viewRooms() {
+    const columns = [
+      { key: "name", header: "Ruang", render: (r) => cell(esc(r.name), `${r.capacity} orang`), sort: (r) => r.name },
+      { key: "loc", header: "Lokasi", render: (r) => esc(r.location), sort: (r) => r.location },
+      { key: "dept", header: "Departemen", render: (r) => esc(dept(r.departmentId)?.name ?? "-") },
+      { key: "fac", header: "Fasilitas", render: (r) => esc(r.facilities || "-") },
+      { key: "pic", header: "Penanggung Jawab Ruang", render: (r) => esc(user(r.picId)?.name ?? "-") },
+      { key: "status", header: "Status", render: (r) => (r.status === "active" ? badge("Aktif", "ok") : badge("Perbaikan", "warn")), sort: (r) => r.status },
+    ];
+    return pageHead("Ruangan", "Daftar ruang meeting beserta kapasitas, fasilitas, dan statusnya. Ruang berstatus Perbaikan tidak bisa dipesan.", `<a class="btn btn-primary" href="#/master/ruangan/tambah">${icon("plus")}Tambah ruangan</a>`)
+      + table("rooms", {
+        rows: db.rooms, columns, unit: "ruang", placeholder: "Cari nama ruang, lokasi, atau fasilitas",
+        searchText: (r) => [r.name, r.location, r.facilities].join(" "),
+        filters: [{ value: "all", label: "Semua", test: () => true }, { value: "active", label: "Aktif", test: (r) => r.status === "active" }, { value: "repair", label: "Perbaikan", test: (r) => r.status === "repair" }],
+        actions: (r) => actLink("pencil", `Ubah ${r.name}`, `#/master/ruangan/${r.id}`, "info") + (db.bookings.some((b) => b.roomId === r.id) ? `<button type="button" class="act bad" disabled aria-label="${esc(r.name)} sudah punya riwayat booking" title="${esc(r.name)} sudah punya riwayat booking">${icon("trash")}</button>` : act("trash", `Hapus ${r.name}`, `data-delete-room="${r.id}"`, "bad")),
+        empty: { icon: "door", title: "Belum ada ruangan", description: "Tambahkan lewat tombol Tambah ruangan." },
+      });
+  }
+
+  function viewRoomForm(id) {
+    const r = id ? room(id) : { name: "", location: "", capacity: "", status: "active", departmentId: 4, facilities: "" };
+    if (!r) return pageHead("Ruangan tidak ditemukan", "", `<a class="btn btn-secondary" href="#/master/ruangan">${icon("arrowLeft")}Kembali</a>`);
+    return pageHead(id ? "Ubah ruangan" : "Tambah ruangan", id ? "Perbarui data ruang meeting." : "Isi data ruang meeting baru.", `<a class="btn btn-secondary" href="#/master/ruangan">${icon("arrowLeft")}Kembali</a>`)
+      + `<div id="rf-alert"></div><section class="card"><form id="room-form" data-id="${id || ""}" novalidate><div class="card-head"><div><h2>Data ruangan</h2></div></div><div class="card-body"><div class="grid2">
+      <div class="field" id="f-name"><label for="rf-name">Nama ruang <span class="req">*</span></label><input class="input" id="rf-name" name="name" maxlength="60" placeholder="Masukkan nama ruang" value="${esc(r.name)}"><div class="hint">Contoh: Ruang Merapi.</div></div>
+      <div class="field" id="f-loc"><label for="rf-loc">Lokasi <span class="req">*</span></label><input class="input" id="rf-loc" name="location" maxlength="60" placeholder="Masukkan lokasi" value="${esc(r.location)}"><div class="hint">Contoh: Lantai 2.</div></div>
+      <div class="field" id="f-cap"><label for="rf-cap">Kapasitas <span class="req">*</span></label><input class="input" type="number" id="rf-cap" name="capacity" min="1" max="500" placeholder="Masukkan kapasitas" value="${r.capacity}"></div>
+      <div class="field"><label for="rf-dept">Departemen</label><select class="select" id="rf-dept" name="departmentId">${db.departments.map((d) => `<option value="${d.id}" ${d.id === r.departmentId ? "selected" : ""}>${esc(d.name)} (${esc(d.code)})</option>`).join("")}</select></div>
+      <div class="field"><label for="rf-status">Status</label><select class="select" id="rf-status" name="status"><option value="active" ${r.status === "active" ? "selected" : ""}>Aktif</option><option value="repair" ${r.status === "repair" ? "selected" : ""}>Perbaikan</option></select></div>
+      <div class="field"><label for="rf-fac">Fasilitas</label><input class="input" id="rf-fac" name="facilities" maxlength="120" placeholder="Masukkan fasilitas" value="${esc(r.facilities)}"><div class="hint">Contoh: TV, Proyektor.</div></div>
+      </div></div><div class="card-foot"><button type="submit" class="btn btn-primary">${icon("save")}${id ? "Simpan perubahan" : "Simpan"}</button></div></form></section>`;
+  }
+
+  function mountRoomForm() {
+    const form = document.getElementById("room-form");
+    if (!form) return;
+    form.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const id = Number(form.dataset.id) || null;
+      const f = new FormData(form);
+      const v = { name: String(f.get("name")).trim(), location: String(f.get("location")).trim(), capacity: Number(f.get("capacity")), departmentId: Number(f.get("departmentId")), status: String(f.get("status")), facilities: String(f.get("facilities")).trim() };
+      const errors = {};
+      if (v.name.length < 3) errors["f-name"] = "Nama ruang minimal 3 karakter.";
+      else if (db.rooms.some((x) => x.id !== id && x.name.toLowerCase() === v.name.toLowerCase())) errors["f-name"] = "Nama ruang sudah dipakai.";
+      if (!v.location) errors["f-loc"] = "Isi lokasi ruang.";
+      if (!(v.capacity >= 1)) errors["f-cap"] = "Kapasitas minimal 1 orang.";
+      form.querySelectorAll(".field.invalid").forEach((el) => { el.classList.remove("invalid"); el.querySelector(".err")?.remove(); });
+      for (const [fid, msg] of Object.entries(errors)) { const el = document.getElementById(fid); el.classList.add("invalid"); el.querySelector(".hint")?.remove(); el.insertAdjacentHTML("beforeend", `<div class="err" role="alert">${esc(msg)}</div>`); }
+      if (Object.keys(errors).length) { document.getElementById("rf-alert").innerHTML = `<div class="form-alert error" role="alert">${icon("circleAlert")}<span>Periksa kembali isian yang ditandai merah.</span></div>`; return; }
+      confirmDialog({
+        title: id ? "Simpan perubahan ruangan?" : "Simpan ruangan baru?", description: `${v.name}, ${v.location}, ${v.capacity} orang.`, label: id ? "Simpan perubahan" : "Simpan", iconName: "save", tone: "primary",
+        onConfirm: () => {
+          if (id) { Object.assign(room(id), v); log("Ubah", "info", "Ruangan", v.name); }
+          else { db.rooms.push({ id: db.seq.room++, picId: 4, ...v }); log("Tambah", "ok", "Ruangan", v.name); }
+          location.hash = "#/master/ruangan";
+          return id ? "Perubahan ruangan disimpan." : "Ruangan ditambahkan.";
+        },
+      });
+    });
+  }
+
+  function viewDepartments() {
+    const columns = [
+      { key: "name", header: "Departemen", render: (d) => cell(esc(d.name), esc(d.code)), sort: (d) => d.name },
+      { key: "users", header: "Pengguna", render: (d) => `${db.users.filter((u) => u.departmentId === d.id).length} orang`, sort: (d) => db.users.filter((u) => u.departmentId === d.id).length, cls: "nowrap" },
+      { key: "status", header: "Status", render: (d) => (d.active ? badge("Aktif", "ok") : badge("Nonaktif", "bad")) },
+    ];
+    return pageHead("Departemen", "Daftar departemen untuk pengguna, ruangan, dan penyetuju. Di demo ini daftar departemen hanya untuk dilihat.")
+      + table("departments", { rows: db.departments, columns, unit: "departemen", placeholder: "Cari nama atau kode departemen", searchText: (d) => `${d.name} ${d.code}`, empty: { icon: "building", title: "Belum ada departemen", description: "" } });
+  }
+
+  function viewUsers() {
+    const columns = [
+      { key: "name", header: "Pengguna", render: (u) => cell(esc(u.name), esc(u.email)), sort: (u) => u.name },
+      { key: "dept", header: "Departemen", render: (u) => `${esc(dept(u.departmentId).name)} (${esc(dept(u.departmentId).code)})`, sort: (u) => dept(u.departmentId).name },
+      { key: "job", header: "Jabatan", render: (u) => esc(u.job) },
+      { key: "role", header: "Hak akses", render: (u) => badge(ROLE[u.role].label, "info"), sort: (u) => ROLE[u.role].label },
+      { key: "status", header: "Status", render: () => badge("Aktif", "ok") },
+    ];
+    return pageHead("Pengguna", "Akun yang bisa masuk ke Meeting Room Booking. Di demo ini daftar pengguna hanya untuk dilihat.")
+      + table("users", { rows: db.users, columns, unit: "pengguna", placeholder: "Cari nama, email, atau departemen", searchText: (u) => [u.name, u.email, dept(u.departmentId).name].join(" "), empty: { icon: "users", title: "Belum ada pengguna", description: "" } });
+  }
+
+  function viewActivity() {
+    const columns = [
+      { key: "at", header: "Waktu", render: (a) => esc(a.at), cls: "nowrap" },
+      { key: "user", header: "Pengguna", render: (a) => esc(a.user), sort: (a) => a.user },
+      { key: "action", header: "Aksi", render: (a) => badge(a.action, a.tone), sort: (a) => a.action },
+      { key: "module", header: "Modul", render: (a) => esc(a.module), sort: (a) => a.module, cls: "nowrap" },
+      { key: "target", header: "Data", render: (a) => cell(esc(a.target), esc(a.detail)) },
+    ];
+    const isAuth = (a) => a.module === "Login dan sesi";
+    return pageHead("Riwayat aktivitas", "Catatan login, login gagal, booking, persetujuan, dan perubahan data. Coba login dengan password salah, lalu lihat catatannya di sini.")
+      + table("activity", {
+        rows: db.activity, columns, unit: "aktivitas", placeholder: "Cari pengguna atau data",
+        searchText: (a) => [a.user, a.target, a.detail, a.module].join(" "),
+        filters: [{ value: "all", label: "Semua", test: () => true }, { value: "change", label: "Perubahan data", test: (a) => !isAuth(a) }, { value: "auth", label: "Login dan sesi", test: isAuth }, { value: "failed", label: "Login gagal", test: (a) => a.action === "Login gagal" }],
+        empty: { icon: "history", title: "Belum ada aktivitas", description: "" },
+      });
+  }
+
+  function viewLogin(message = "") {
+    return `<main class="login"><div class="login-glow" aria-hidden="true"></div><div class="login-main">
+      <div class="login-brand">${BRAND_MARK(true)}<div class="login-word"><b>Meeting Room</b><small>Booking</small></div></div>
+      ${message ? `<div class="form-alert error" role="alert">${icon("circleAlert")}<span>${esc(message)}</span></div>` : ""}
+      <section class="card login-card"><div class="card-body"><h1>Selamat datang</h1><p class="lead">Masuk untuk memesan ruang meeting.</p>
+      <form id="login-form" novalidate>
+        <div class="field"><label for="login-email">Email</label><div class="input-ic">${icon("atSign")}<input class="input" id="login-email" name="email" type="email" autocomplete="email" placeholder="Masukkan email"></div></div>
+        <div class="field"><label for="login-password">Password</label><input class="input" id="login-password" name="password" type="password" autocomplete="current-password" placeholder="Masukkan password"></div>
+        <div class="login-row"><label class="check"><input type="checkbox" name="remember">Ingat saya</label><button type="button" class="link-icon" data-action="forgot">${icon("circleHelp")}Lupa password?</button></div>
+        <button type="submit" class="btn btn-primary">${icon("logIn")}Masuk</button>
+      </form>
+      <div class="demo-accounts"><h2>Akun demo · password ${PASSWORD}</h2>${db.users.map((u) => `<button type="button" class="demo-account" data-fill="${u.email}"><span><b>${esc(ROLE[u.role].label)}</b><small>${esc(u.email)}</small></span><small>Isi otomatis</small></button>`).join("")}</div>
+      </div></section><p class="login-meta">© 2026 Fedy Fs. Gerana · Versi demo</p></div></main>`;
+  }
+
+  function navLinks(route) {
+    const pages = ROLE[me.role].pages;
+    const pending = ROLE[me.role].modes.reduce((n, m) => n + approvalQueue(m).length, 0);
+    return NAV.map((item) => {
+      if (item.children) {
+        const children = item.children.filter((c) => pages.includes(c.page));
+        if (!children.length) return "";
+        const active = children.some((c) => c.page === route.page);
+        const open = ui.menu === item.key;
+        return `<div class="nav-group"><button type="button" class="tab${active ? " active" : ""}" aria-haspopup="true" aria-expanded="${open}" data-menu="${item.key}">${icon(item.icon)}${item.label}${icon("chevronDown", "caret")}</button>
+          ${open ? `<div class="nav-drop">${children.map((c) => `<a href="${c.href}" class="${c.page === route.page ? "active" : ""}">${icon(c.icon)}${c.label}</a>`).join("")}</div>` : ""}</div>`;
+      }
+      if (!pages.includes(item.page)) return "";
+      const active = item.page === route.page;
+      return `<a href="${item.href}" class="tab${active ? " active" : ""}" ${active ? 'aria-current="page"' : ""}>${icon(item.icon)}${item.label}${item.page === "approvals" && pending ? `<span class="num">${pending}</span>` : ""}</a>`;
+    }).join("");
+  }
+
+  function bottomNav(route) {
+    const pages = ROLE[me.role].pages;
+    const main = NAV.filter((i) => !i.children && pages.includes(i.page));
+    const more = NAV.filter((i) => i.children).map((g) => ({ title: g.label, links: g.children.filter((c) => pages.includes(c.page)) })).filter((g) => g.links.length);
+    return `<nav class="bottom-nav" aria-label="Menu utama">${main.map((i) => `<a href="${i.href}" class="${i.page === route.page ? "active" : ""}">${icon(i.icon)}${i.short ?? i.label}</a>`).join("")}
+      ${more.length ? `<button type="button" data-action="more" class="${more.some((g) => g.links.some((l) => l.page === route.page)) ? "active" : ""}">${icon("menu")}Lainnya</button>` : ""}</nav>`;
+  }
+
+  function moreSheet() {
+    const pages = ROLE[me.role].pages;
+    const groups = NAV.filter((i) => i.children).map((g) => ({ title: g.label, links: g.children.filter((c) => pages.includes(c.page)) })).filter((g) => g.links.length);
+    layer.innerHTML = `<div class="backdrop" data-close><div class="modal sheet-modal" role="dialog" aria-modal="true" aria-label="Menu lainnya"><div class="sheet-handle" aria-hidden="true"></div><div class="sheet">${groups.map((g) => `<div><h3>${g.title}</h3><div class="sheet-list">${g.links.map((l) => `<a href="${l.href}" data-close-link>${icon(l.icon)}${l.label}</a>`).join("")}</div></div>`).join("")}</div></div></div>`;
+  }
+
+  function topbarRight() {
+    const mine = db.notifications.filter((n) => n.userId === me.id);
+    const unread = mine.filter((n) => !n.read).length;
+    const tone = avatarTone(me.name);
+    const d = dept(me.departmentId);
+    const notif = `<div class="notif"><button type="button" class="notif-btn" aria-haspopup="true" aria-expanded="${ui.menu === "notif"}" aria-label="Notifikasi" title="Notifikasi" data-menu="notif">${icon("bell")}${unread ? `<span class="notif-count">${unread}</span>` : ""}</button>
+      ${ui.menu === "notif" ? `<div class="notif-panel" role="dialog" aria-label="Notifikasi"><div class="notif-head"><b>Notifikasi</b>${unread ? `<button type="button" class="link-icon" data-action="read-all">${icon("checkCheck")}Tandai semua dibaca</button>` : ""}</div>
+        ${mine.length ? `<ul class="notif-list">${mine.slice(0, 20).map((n) => `<li><button type="button" class="notif-item${n.read ? "" : " unread"}" data-note="${n.id}"><span class="notif-ic">${icon("clipboardCheck")}</span><span class="notif-text"><b>${esc(n.title)}</b><span>${esc(n.body)}</span><small>${esc(n.at)}</small></span>${n.read ? "" : '<i class="notif-dot" aria-label="Belum dibaca"></i>'}</button></li>`).join("")}</ul>` : `<div class="notif-empty">${icon("bellOff")}Belum ada notifikasi.</div>`}</div>` : ""}</div>`;
+    const account = `<div class="user-menu"><button type="button" class="user-btn" aria-haspopup="true" aria-expanded="${ui.menu === "account"}" data-menu="account"><span class="avatar avatar-solid ${tone}">${initials(me.name)}</span><span class="u-text"><span class="u-name">${esc(me.name)}</span><span class="u-role">${ROLE[me.role].label}</span></span>${icon("chevronDown", "u-caret")}</button>
+      ${ui.menu === "account" ? `<div class="account" role="dialog" aria-label="Akun"><div class="acc-head"><span class="avatar avatar-solid ${tone}">${initials(me.name)}</span><div><div class="who">${esc(me.name)}</div><div class="what">${esc(me.email)}</div></div></div><div class="sep"></div>
+        <ul class="acc-meta"><li title="Jabatan">${icon("briefcase")}<span>${esc(me.job)}</span></li><li title="Departemen">${icon("building")}<span>${esc(d.name)} (${esc(d.code)})</span></li><li title="Akses">${icon("shieldCheck")}<span>${ROLE[me.role].label}</span></li></ul><div class="sep"></div>
+        <div class="theme-seg" role="group" aria-label="Tema tampilan">${[["system", "Sistem", "laptop"], ["light", "Terang", "sun"], ["dark", "Gelap", "moon"]].map(([v, l, ic]) => `<button type="button" aria-pressed="${ui.theme === v}" data-theme-set="${v}">${icon(ic)}${l}</button>`).join("")}</div><div class="sep"></div>
+        <button type="button" class="logout" data-action="logout">${icon("logOut")}Keluar</button></div>` : ""}</div>`;
+    return notif + account;
+  }
+
+  function parseRoute() {
+    const raw = location.hash.replace(/^#/, "") || "/";
+    const [path, query = ""] = raw.split("?");
+    const params = new URLSearchParams(query);
+    let m;
+    if (path === "/") return { page: "home", view: () => viewHome(params) };
+    if (path === "/booking") return { page: "booking", view: viewBookings };
+    if (path === "/booking/baru") return { page: "booking", view: () => viewBookingForm(params), mount: mountBookingForm };
+    if ((m = path.match(/^\/booking\/(\d+)$/))) return { page: "booking", view: () => viewBookingDetail(Number(m[1])) };
+    if (path === "/persetujuan") return { page: "approvals", view: () => viewApprovals(params) };
+    if (path === "/monitoring") return { page: "monitoring", view: () => viewMonitoring(params) };
+    if (path === "/master/ruangan") return { page: "rooms", view: viewRooms };
+    if (path === "/master/ruangan/tambah") return { page: "rooms", view: () => viewRoomForm(null), mount: mountRoomForm };
+    if ((m = path.match(/^\/master\/ruangan\/(\d+)$/))) return { page: "rooms", view: () => viewRoomForm(Number(m[1])), mount: mountRoomForm };
+    if (path === "/master/departemen") return { page: "departments", view: viewDepartments };
+    if (path === "/master/pengguna") return { page: "users", view: viewUsers };
+    if (path === "/pengaturan/riwayat-aktivitas") return { page: "activity", view: viewActivity };
+    return { page: "home", view: () => viewHome(params) };
+  }
+
+  function render() {
+    closeLayer();
+    const app = document.getElementById("app");
+    if (!me) { app.innerHTML = viewLogin(ui.loginError); ui.loginError = ""; document.title = "Masuk — Meeting Room Booking (demo)"; return document.getElementById("login-email")?.focus(); }
+    let route = parseRoute();
+    if (!can(route.page)) { route = { page: "home", view: () => viewHome(new URLSearchParams()) }; }
+    app.innerHTML = `<div class="app"><header class="app-header"><div class="topbar"><div class="wrap topbar-in"><a href="#/" aria-label="Meeting Room Booking, ke Beranda"><span class="brand">${BRAND_MARK(false)}<span class="brand-word"><b>Meeting Room</b><small>Booking</small></span></span></a><div class="topbar-r">${topbarRight()}</div></div></div>
+      <nav class="navbar" aria-label="Menu utama"><div class="wrap navbar-in"><div class="nav">${navLinks(route)}</div></div></nav></header>
+      <main class="wrap app-main">${route.view()}</main>
+      <footer class="footer"><div class="wrap footer-in"><span>© 2026 Fedy Fs. Gerana</span><span>Meeting Room Booking versi demo</span></div></footer>${bottomNav(route)}</div>`;
+    route.mount?.();
+    document.title = `${{ home: "Beranda", booking: "Booking Ruang", approvals: "Persetujuan", monitoring: "Monitoring", rooms: "Ruangan", departments: "Departemen", users: "Pengguna", activity: "Riwayat aktivitas" }[route.page]} — Meeting Room Booking (demo)`;
+  }
+
+  function rerenderKeepFocus(selector) {
+    const pos = document.activeElement?.selectionStart;
+    render();
+    const el = document.querySelector(selector);
+    if (el) { el.focus(); if (pos != null) el.setSelectionRange(pos, pos); }
+  }
+
+  document.addEventListener("submit", (e) => {
+    if (e.target.id !== "login-form") return;
+    e.preventDefault();
+    const f = new FormData(e.target);
+    const email = String(f.get("email")).trim().toLowerCase();
+    const password = String(f.get("password"));
+    if (!email || !password) { ui.loginError = "Isi email dan password."; return render(); }
+    const found = db.users.find((u) => u.email === email);
+    if (!found || password !== PASSWORD) {
+      db.activity.unshift({ at: stamp(), user: found ? found.name : "-", action: "Login gagal", tone: "bad", module: "Login dan sesi", target: email, detail: found ? "Password salah" : "Akun tidak ditemukan" });
+      persist(); ui.loginError = "Email atau password salah."; return render();
+    }
+    me = found;
+    sessionStorage.setItem(SESSION, String(found.id));
+    log("Login", "ok", "Login dan sesi", found.name);
+    persist();
+    if (location.hash === "#/" || !location.hash) render(); else location.hash = "#/";
+  });
+
+  document.addEventListener("click", (e) => {
+    const closer = e.target.closest("[data-close]");
+    if (closer && (!closer.classList.contains("backdrop") || e.target === closer)) { closeLayer(); return; }
+    const el = e.target.closest("button, a");
+    if (!el) { if (ui.menu && !e.target.closest(".nav-group, .notif, .user-menu")) { ui.menu = null; render(); } return; }
+    const d = el.dataset;
+    if (d.action === "reset-demo") { db = seed(); persist(); me = null; sessionStorage.removeItem(SESSION); ui.tables = {}; location.hash = "#/"; render(); statusModal("Data demo dikembalikan seperti semula.", "info"); return; }
+    if (d.fill) { document.getElementById("login-email").value = d.fill; document.getElementById("login-password").value = PASSWORD; document.getElementById("login-password").focus(); return; }
+    if (d.action === "forgot") { statusModal("Di aplikasi asli, hubungi administrator untuk mengatur ulang password. Di demo ini semua akun memakai password demo1234.", "info"); return; }
+    if (!me) return;
+    if (ui.menu && !el.closest(".nav-group, .notif, .user-menu") && !d.menu) ui.menu = null;
+    if (d.menu) { ui.menu = ui.menu === d.menu ? null : d.menu; return render(); }
+    if (el.tagName === "A" && el.getAttribute("href")?.startsWith("#")) { ui.menu = null; if (el.getAttribute("href") === location.hash) render(); return; }
+    if (d.themeSet) { applyTheme(d.themeSet); return render(); }
+    if (d.action === "logout") { ui.menu = null; render(); return confirmLogout(); }
+    if (d.action === "read-all") { db.notifications.forEach((n) => { if (n.userId === me.id) n.read = true; }); persist(); return render(); }
+    if (d.note) { const n = db.notifications.find((x) => x.id === Number(d.note)); n.read = true; persist(); ui.menu = null; if (location.hash === n.href) render(); else location.hash = n.href; return; }
+    if (d.action === "more") return moreSheet();
+    if (d.go) { location.hash = d.go; return; }
+    if (d.cancel) return cancelBooking(Number(d.cancel));
+    if (d.approve) { const [id, mode] = d.approve.split(":"); return decide(Number(id), mode, true); }
+    if (d.reject) { const [id, mode] = d.reject.split(":"); return decide(Number(id), mode, false); }
+    if (d.deleteRoom) return deleteRoom(Number(d.deleteRoom));
+    if (d.tFilter) { const [id, v] = d.tFilter.split(":"); ui.tables[id].filter = v; ui.tables[id].page = 1; return render(); }
+    if (d.tSort) { const [id, key] = d.tSort.split(":"); const st = ui.tables[id]; st.sort = !st.sort || st.sort.key !== key ? { key, dir: "asc" } : st.sort.dir === "asc" ? { key, dir: "desc" } : null; return render(); }
+    if (d.tPage) { const [id, p] = d.tPage.split(":"); ui.tables[id].page = Number(p); return render(); }
+  });
+
+  document.addEventListener("input", (e) => {
+    const id = e.target.dataset?.tSearch;
+    if (id) { ui.tables[id].q = e.target.value; ui.tables[id].page = 1; rerenderKeepFocus(`[data-t-search="${id}"]`); }
+  });
+  document.addEventListener("change", (e) => {
+    const d = e.target.dataset || {};
+    if (d.tSize) { ui.tables[d.tSize].size = Number(e.target.value); ui.tables[d.tSize].page = 1; render(); }
+    if (d.dateBase && e.target.value) location.hash = e.target.value === today() ? d.dateBase : `${d.dateBase}?tanggal=${e.target.value}`;
+  });
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape") { if (layer.innerHTML) closeLayer(); else if (ui.menu) { ui.menu = null; render(); } } });
+  window.addEventListener("hashchange", () => { ui.menu = null; render(); window.scrollTo({ top: 0 }); });
+
+  me = db.users.find((u) => u.id === Number(sessionStorage.getItem(SESSION))) || null;
+  render();
+})();
+</script>
+</body>
+</html>

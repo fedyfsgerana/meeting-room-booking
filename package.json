@@ -23,7 +23,8 @@
     "test:watch": "vitest",
     "db:reset-password": "tsx src/backend/db/reset-password.ts",
     "db:reset": "tsx src/backend/db/reset.ts",
-    "db:clean": "tsx src/backend/db/clean.ts"
+    "db:clean": "tsx src/backend/db/clean.ts",
+    "demo:build": "node scripts/build-demo.mjs"
   },
   "dependencies": {
     "@node-rs/argon2": "^2.2.2",

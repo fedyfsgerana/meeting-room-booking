@@ -262,7 +262,7 @@ export function BookingForm({
               htmlFor="booking-topic"
               required
               error={errors.topic}
-              hint="Contoh: Evaluasi supplier kelapa."
+              hint="Contoh: Evaluasi vendor kuartal ketiga."
             >
               <Input
                 id="booking-topic"
@@ -388,7 +388,7 @@ export function BookingForm({
                   label="Lawan bicara"
                   htmlFor="booking-counterpart"
                   error={errors.counterpart}
-                  hint="Opsional. Contoh: PT Mitra Kelapa atau tim audit pusat."
+                  hint="Opsional. Contoh: PT Mitra Sejahtera atau tim audit pusat."
                 >
                   <Input
                     id="booking-counterpart"

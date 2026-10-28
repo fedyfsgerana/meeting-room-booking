@@ -5,7 +5,7 @@ const identity = { name: "Dewi Lestari", email: "dewi.lestari@example.com" };
 
 describe("passwordProblem", () => {
   it("menerima password yang kuat", () => {
-    expect(passwordProblem("Kelapa2026Hijau", identity)).toBeNull();
+    expect(passwordProblem("Senja2026Biru", identity)).toBeNull();
   });
 
   it("mewajibkan huruf dan angka", () => {
